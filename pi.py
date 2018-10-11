@@ -30,7 +30,6 @@ if __name__ == "__main__":
     """
     spark = SparkSession\
         .builder\
-        .conf({'spark.pyspark.python': '/opt/anaconda/bin/python'})
         .appName("PythonPi")\
         .getOrCreate()
 
