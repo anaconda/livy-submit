@@ -1,6 +1,12 @@
 # livy-submit
 CLI for submitting batch spark jobs to livy. Think spark-submit
 
+## Network requirements
+
+1. Your client must be able to see the livy server
+2. Your client must be able to see the Namenode so you can upload your python files to HDFS so that
+   Spark can pull them down at runtime.
+
 ## Dev
 To use, pip install in editable mode `pip install -e .`
 
@@ -12,7 +18,8 @@ Then you can use the `livy-submit` CLI
 * reuests
 
 ## Example
-Run this code snippet to submit a spark job to the livy endpoint in the SA Lab cluster in the Anaconda datacenter
+Run this code snippet to submit a spark job to the livy endpoint in the SA Lab cluster in the
+Anaconda datacenter
 
 ```
 export HDFS_USER=<your kerberos hdfs user>
