@@ -3,12 +3,9 @@ import getpass
 import os
 import sys
 import requests
-import kerberos
 import uuid
 import requests_kerberos
 import json
-import pprint
-import textwrap
 from argparse import ArgumentParser
 from hdfs.ext.kerberos import KerberosClient
 import logging
@@ -74,9 +71,8 @@ def _make_arg_parser():
         help="The name of this spark job",
         default=f'Livy-submit job for {getpass.getuser()}'
     )
-
-
     return ap
+
 
 def _parse_config(config: list) -> dict:
     cfg = {}
@@ -88,6 +84,7 @@ def _parse_config(config: list) -> dict:
             raise
         cfg[k] = v
     return cfg
+
 
 def cli():
     # get the argument parser and parse the args
