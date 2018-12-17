@@ -1,0 +1,2 @@
+include versioneer.py
+include livy_submit/_version.py
