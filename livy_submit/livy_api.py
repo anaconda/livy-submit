@@ -13,16 +13,18 @@ class Batch:
         self.state = state
 
     def __repr__(self):
-        return f'Batch(id={self.id}, appId={self.appId}, appInfo={self.appInfo}, log=[see self.log], state={self.state})'
+        return f"Batch(id={self.id}, appId={self.appId}, appInfo={self.appInfo}, log=[see self.log], state={self.state})"
 
 
 class LivyAPI:
-    def __init__(self,
-                 server_url: str,
-                 port: int = 8998,
-                 use_tls: bool = False,
-                 headers: Dict = None,
-                 auth=None):
+    def __init__(
+        self,
+        server_url: str,
+        port: int = 8998,
+        use_tls: bool = False,
+        headers: Dict = None,
+        auth=None,
+    ):
         """
         Parameters
         ----------
@@ -34,25 +36,25 @@ class LivyAPI:
         """
         if auth is None:
             auth = requests_kerberos.HTTPKerberosAuth(
-                mutual_authentication=requests_kerberos.REQUIRED,
-                force_preemptive=True)
+                mutual_authentication=requests_kerberos.REQUIRED, force_preemptive=True
+            )
 
         self._auth = auth
 
-        protocol = 'http'
+        protocol = "http"
         if use_tls:
-            protocol = 'https'
+            protocol = "https"
 
-        self._base_url = '%s://%s:%s/batches' % (protocol, server_url, port)
+        self._base_url = "%s://%s:%s/batches" % (protocol, server_url, port)
 
         if headers is None:
-            headers = {'Content-Type': 'application/json'}
+            headers = {"Content-Type": "application/json"}
 
         self._headers = headers
 
-    def all_info(self,
-                 from_index: int = None,
-                 size: int = None) -> Tuple[int, int, List[Batch]]:
+    def all_info(
+        self, from_index: int = None, size: int = None
+    ) -> Tuple[int, int, List[Batch]]:
         """Returns all the active batch sessions.
 
         Handles: GET /batches
@@ -73,21 +75,21 @@ class LivyAPI:
         """
         data = {}
         if from_index:
-            data['from'] = from_index
+            data["from"] = from_index
         if size:
-            data['size'] = size
+            data["size"] = size
 
-        response = self._request('get', self._base_url, data=data)
-        info = {batch['id']: Batch(**batch) for batch in response['sessions']}
-        return response['from'], response['total'], info
+        response = self._request("get", self._base_url, data=data)
+        info = {batch["id"]: Batch(**batch) for batch in response["sessions"]}
+        return response["from"], response["total"], info
 
     def info(self, batch_id: int) -> Dict:
         """Returns the batch session information.
 
         Handles: GET /batches/{batchId}
         """
-        url = '%s/%s' % (self._base_url, batch_id)
-        response = self._request('get', url)
+        url = "%s/%s" % (self._base_url, batch_id)
+        response = self._request("get", url)
         return Batch(**response)
 
     def state(self, batch_id: int) -> Tuple[int, str]:
@@ -107,21 +109,23 @@ class LivyAPI:
             The current state of batch session
         """
         url = "%s/%s/state" % (self._base_url, batch_id)
-        response = self._request('get', url)
+        response = self._request("get", url)
         return response
 
-    def submit(self,
-               name: str,
-               file: str,
-               driverMemory: str = None,
-               driverCores: int = None,
-               executorMemory: str = None,
-               executorCores: int = None,
-               numExecutors: int = None,
-               archives: List[str] = None,
-               queue: str = None,
-               conf: Dict = None,
-               args: List[str] = None) -> Batch:
+    def submit(
+        self,
+        name: str,
+        file: str,
+        driverMemory: str = None,
+        driverCores: int = None,
+        executorMemory: str = None,
+        executorCores: int = None,
+        numExecutors: int = None,
+        archives: List[str] = None,
+        queue: str = None,
+        conf: Dict = None,
+        args: List[str] = None,
+    ) -> Batch:
         """
         Submit a batch job to the Livy server
 
@@ -179,18 +183,17 @@ class LivyAPI:
         local_items = locals()
         data = {}
         for var, val in local_items.items():
-            if val is None or var == 'self':
+            if val is None or var == "self":
                 continue
             data[var] = val
         print(data)
         # Submit the data dict to the Livy Batches API to create a batch job
-        response = self._request('post', self._base_url, data=data)
+        response = self._request("post", self._base_url, data=data)
         return Batch(**response)
 
-    def logs(self,
-             batch_id: int,
-             starting_line: int = 0,
-             num_lines: int = 10) ->  Tuple[int, int, int, List[str]]:
+    def logs(
+        self, batch_id: int, starting_line: int = 0, num_lines: int = 10
+    ) -> Tuple[int, int, int, List[str]]:
         """
         Get the log lines from the batch job represented by `session_id`
 
@@ -211,10 +214,10 @@ class LivyAPI:
         int: Number of log lines
         list of strings: The log lines
         """
-        data = {'from': starting_line, 'size': num_lines}
-        url = '%s/%s/log' % (self._base_url, batch_id)
-        response = self._request('get', url, data=data)
-        return response['id'], response['from'], response['total'], response['log']
+        data = {"from": starting_line, "size": num_lines}
+        url = "%s/%s/log" % (self._base_url, batch_id)
+        response = self._request("get", url, data=data)
+        return response["id"], response["from"], response["total"], response["log"]
 
     def kill(self, batchId: int):
         """
@@ -224,8 +227,8 @@ class LivyAPI:
         ----------
         batchId: The batch id that you want to kill
         """
-        url = '%s/%s' % (self._base_url, batchId)
-        response = self._request('delete', url)
+        url = "%s/%s" % (self._base_url, batchId)
+        response = self._request("delete", url)
         return response
 
     def _request(self, rest_action: str, url: str, data: Dict = None) -> Dict:
