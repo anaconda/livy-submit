@@ -16,15 +16,15 @@ def _base_parser():
     ArgumentParser
     """
     ap = ArgumentParser(
-        prog='livy-submit',
+        prog="livy-submit",
         description="CLI for interacting with the Livy REST API",
-        add_help=False
+        add_help=False,
     )
     ap.add_argument(
-        '--conf-file',
-        action='store',
-        default=expanduser('~/.livy-submit'),
-        help="The location of the livy submit configuration file"
+        "--conf-file",
+        action="store",
+        default=expanduser("~/.livy-submit"),
+        help="The location of the livy submit configuration file",
     )
     return ap
 
@@ -43,16 +43,16 @@ def _livy_info(base_parser):
 
     ap = ArgumentParser(parents=[base_parser])
     ap.add_argument(
-        '--short',
-        action='store_true',
+        "--short",
+        action="store_true",
         default=False,
-        help="Only show the current status of the job"
+        help="Only show the current status of the job",
     )
     ap.add_argument(
-        'batchId',
-        action='store',
+        "batchId",
+        action="store",
         # required=False,
-        help="The Livy batch ID that you want information for"
+        help="The Livy batch ID that you want information for",
     )
 
 

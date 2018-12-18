@@ -5,19 +5,23 @@ from typing import List, Dict, Tuple
 
 
 class Batch:
-    def __init__(self, id: str, appId: str, appInfo: Dict, log: List, state: str):
+    def __init__(
+        self, id: str, appId: str, appInfo: Dict, log: List, state: str
+    ):
         self.id = id
         self.appId = appId
         self.appInfo = appInfo
         self.log = log
         self.state = state
-        
+
     def __eq__(self, other):
         """Make an equality comparison ignoring the logs"""
-        return (self.id == other.id and 
-                self.appId == other.appId and 
-                self.appInfo == other.appInfo and
-                self.state == other.state)
+        return (
+            self.id == other.id
+            and self.appId == other.appId
+            and self.appInfo == other.appInfo
+            and self.state == other.state
+        )
 
     def __repr__(self):
         return f"Batch(id={self.id}, appId={self.appId}, appInfo={self.appInfo}, log=[see self.log], state={self.state})"
@@ -43,7 +47,8 @@ class LivyAPI:
         """
         if auth is None:
             auth = requests_kerberos.HTTPKerberosAuth(
-                mutual_authentication=requests_kerberos.REQUIRED, force_preemptive=True
+                mutual_authentication=requests_kerberos.REQUIRED,
+                force_preemptive=True,
             )
 
         self._auth = auth
@@ -115,7 +120,7 @@ class LivyAPI:
         """
         url = "%s/%s/state" % (self._base_url, batch_id)
         response = self._request("get", url)
-        return response['id'], response['state']
+        return response["id"], response["state"]
 
     def submit(
         self,
@@ -222,7 +227,12 @@ class LivyAPI:
         data = {"from": starting_line, "size": num_lines}
         url = "%s/%s/log" % (self._base_url, batch_id)
         response = self._request("get", url, data=data)
-        return response["id"], response["from"], response["total"], response["log"]
+        return (
+            response["id"],
+            response["from"],
+            response["total"],
+            response["log"],
+        )
 
     def kill(self, batchId: int):
         """
