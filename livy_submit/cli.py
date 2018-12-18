@@ -22,7 +22,7 @@ def _init_logger(loglevel):
     for handler in logger.handlers:
         logger.removeHandler(handler)
     logger.setLevel(loglevel)
-    format_string = '%(levelname)s: %(message)s'
+    format_string = '%(asctime)-15s %(levelname)s: %(message)s'
     formatter = logging.Formatter(fmt=format_string)
     stream_handler = logging.StreamHandler()
     stream_handler.setLevel(loglevel)
@@ -356,7 +356,7 @@ def _livy_submit_parser(subparsers):
     )
 
 
-def _livy_kill_func(livy_url: str, batchId: int):
+def _livy_kill_func(livy_url: str, batchId: int, **kwargs):
     """
     Terminate a Livy job and delete its state from the Livy server
     """
@@ -383,6 +383,7 @@ def _make_parser() -> ArgumentParser:
     subparsers = base.add_subparsers(help="sub-command help")
     _livy_info_parser(subparsers)
     _livy_submit_parser(subparsers)
+    _livy_kill_parser(subparsers)
     return base
 
 

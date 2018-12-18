@@ -1,6 +1,7 @@
 [run]
 source =
     livy_submit/
+    test/
 
 [report]
 omit =
