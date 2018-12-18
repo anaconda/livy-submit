@@ -19,22 +19,24 @@ def _sparkmagic_config(config_path: str) -> Dict:
     dict: Keys are "spark_config", "livy_url" and "livy_port"
     """
     if not os.path.exists(config_path):
-        print('%s not found. Cannot load sparkmagic defaults' % config_path)
+        print("%s not found. Cannot load sparkmagic defaults" % config_path)
         return {}
-    with open(config_path, 'r') as f:
+    with open(config_path, "r") as f:
         cfg = json.loads(f.read())
-    spark_config = cfg.get('session_configs')
-    livy_server = cfg.get('kernel_python_credentials', {}).get('url')
+    spark_config = cfg.get("session_configs")
+    livy_server = cfg.get("kernel_python_credentials", {}).get("url")
     if livy_server is not None:
-        url, port = livy_server.rsplit(':', maxsplit=1)
+        url, port = livy_server.rsplit(":", maxsplit=1)
     else:
-        err_str = ("'kernel_python_credentials' not found in sparkmagic "
-                   "configuration (%s). Unable to automatically determine "
-                   "the location of your Livy server" % config_path)
+        err_str = (
+            "'kernel_python_credentials' not found in sparkmagic "
+            "configuration (%s). Unable to automatically determine "
+            "the location of your Livy server" % config_path
+        )
         print(err_str)
         url, port = None, None
 
-    return {'conf': spark_config, 'livy_url': url, 'livy_port': port}
+    return {"conf": spark_config, "livy_url": url, "livy_port": port}
 
 
 def _livy_submit_config(config_path: str) -> Dict:
@@ -56,9 +58,9 @@ def _livy_submit_config(config_path: str) -> Dict:
         args
     """
     if not os.path.exists(config_path):
-        print('%s not found. Cannot load livy submit defaults' % config_path)
+        print("%s not found. Cannot load livy submit defaults" % config_path)
         return {}
-    with open(config_path, 'r') as f:
+    with open(config_path, "r") as f:
         return json.loads(f.read())
 
 
@@ -85,9 +87,11 @@ def _base_parser():
         "--sparkmagic-config",
         action="store",
         default=expanduser("~/.sparkmagic/config.json"),
-        help=("The location of the sparkmagic configuration file. "
-              "Will extract the Livy url/port and the spark defaults "
-              "set in `session_configs`")
+        help=(
+            "The location of the sparkmagic configuration file. "
+            "Will extract the Livy url/port and the spark defaults "
+            "set in `session_configs`"
+        ),
     )
     ap.add_argument(
         "--livy-submit-config",
@@ -98,20 +102,24 @@ def _base_parser():
     ap.add_argument(
         "--namenode-url",
         action="store",
-        help=("The url of the namenode. Should include protocol "
-              "(http/https) and port (50070)")
+        help=(
+            "The url of the namenode. Should include protocol "
+            "(http/https) and port (50070)"
+        ),
     )
     ap.add_argument(
         "--livy-url",
         action="store",
-        help=("The url of the Livy server. Should include protocol "
-              "(http/https) and port (8998)")
+        help=(
+            "The url of the Livy server. Should include protocol "
+            "(http/https) and port (8998)"
+        ),
     )
     ap.add_argument(
-        '--pdb',
+        "--pdb",
         action="store_true",
         default=False,
-        help="Drop into a debugger on client-side exception"
+        help="Drop into a debugger on client-side exception",
     )
     return ap
 
@@ -152,8 +160,7 @@ def _livy_info_parser(subparsers) -> ArgumentParser:
     Configure the `livy info` subparser
     """
     ap = subparsers.add_parser(
-        'info',
-        help="Parser for getting info on an active Livy job"
+        "info", help="Parser for getting info on an active Livy job"
     )
     ap.set_defaults(func=_livy_info_func)
     ap.add_argument(
@@ -187,40 +194,39 @@ def _livy_submit_func(
     args: List[str] = None,
     **kwargs
 ):
-    print('conf:\n%s' % pformat(conf))
+    print("conf:\n%s" % pformat(conf))
 
     if args is not None:
         args = shlex.split(args)
 
-    print('args:\n%s' % pformat(args))
+    print("args:\n%s" % pformat(args))
 
     # upload file to hdfs
     hdfs_file_path = hdfs_api.upload(namenode_url=namenode_url, local_file=file)
-    hdfs_file_path = 'hdfs://%s' % hdfs_file_path
+    hdfs_file_path = "hdfs://%s" % hdfs_file_path
     # upload archives to hdfs
     hdfs_dirname = dirname(hdfs_file_path)
     if archives is not None:
         hdfs_archives = []
         for archive in archives:
             archive_path = hdfs_api.upload(
-                namenode_url=namenode_url,
-                local_file=archive,
-                hdfs_dir=hdfs_dirname)
-            hdfs_archives.append('hdfs://%s' % archive_path)
+                namenode_url=namenode_url, local_file=archive, hdfs_dir=hdfs_dirname
+            )
+            hdfs_archives.append("hdfs://%s" % archive_path)
         archives = hdfs_archives
     # format args to pass to the livy submit API
     submit_args = {
-        'name': name,
-        'file': hdfs_file_path,
-        'driverMemory': driverMemory,
-        'driverCores': driverCores,
-        'executorMemory': executorMemory,
-        'executorCores': executorCores,
-        'numExecutors': numExecutors,
-        'archives': archives,
-        'queue': queue,
-        'conf': conf,
-        'args': args
+        "name": name,
+        "file": hdfs_file_path,
+        "driverMemory": driverMemory,
+        "driverCores": driverCores,
+        "executorMemory": executorMemory,
+        "executorCores": executorCores,
+        "numExecutors": numExecutors,
+        "archives": archives,
+        "queue": queue,
+        "conf": conf,
+        "args": args,
     }
     # submit livy job
     api_instance = livy_api.LivyAPI(server_url=livy_url)
@@ -237,111 +243,142 @@ def _livy_submit_parser(subparsers):
     """
 
     ap = subparsers.add_parser(
-        'submit',
-        help="Parser for submitting a job to the Livy /batches endpoint"
+        "submit", help="Parser for submitting a job to the Livy /batches endpoint"
     )
     ap.set_defaults(func=_livy_submit_func)
     ap.add_argument(
-        '--name',
-        action='store',
+        "--name",
+        action="store",
         required=True,
-        help='The name that your Spark job should have on the Yarn RM'
+        help="The name that your Spark job should have on the Yarn RM",
     )
     ap.add_argument(
-        '--file',
-        action='store',
+        "--file",
+        action="store",
         required=True,
-        help=("The file that should be executed during your Spark job. "
-              "If this file is local it will be uploaded to a temporary "
-              "path on HDFS so it will be accessible from your Spark "
-              "driver and executors")
+        help=(
+            "The file that should be executed during your Spark job. "
+            "If this file is local it will be uploaded to a temporary "
+            "path on HDFS so it will be accessible from your Spark "
+            "driver and executors"
+        ),
     )
     ap.add_argument(
-        '--driver-memory',
-        action='store',
-        help=('e.g. 512m, 2g. Amount of memory to use for the driver process, i.e. '
-              'where SparkContext is initialized, in the same format '
-              'as JVM memory strings with a size unit suffix '
-              '("k", "m", "g" or "t"). Overrides settings contained in config files.')
+        "--driver-memory",
+        action="store",
+        help=(
+            "e.g. 512m, 2g. Amount of memory to use for the driver process, i.e. "
+            "where SparkContext is initialized, in the same format "
+            "as JVM memory strings with a size unit suffix "
+            '("k", "m", "g" or "t"). Overrides settings contained in config files.'
+        ),
     )
     ap.add_argument(
-        '--driverCores',
-        action='store',
-        help=('Number of cores to use for the driver process, only in cluster mode. '
-              'Overrides settings contained in config files.')
+        "--driverCores",
+        action="store",
+        help=(
+            "Number of cores to use for the driver process, only in cluster mode. "
+            "Overrides settings contained in config files."
+        ),
     )
     ap.add_argument(
-        '--executorMemory',
-        action='store',
-        help=('e.g. 512m, 2g. Amount of memory to use per executor process, in '
-              'the same format as JVM memory strings with a size unit suffix '
-              '("k", "m", "g" or "t"). Overrides settings contained in config files.')
+        "--executorMemory",
+        action="store",
+        help=(
+            "e.g. 512m, 2g. Amount of memory to use per executor process, in "
+            "the same format as JVM memory strings with a size unit suffix "
+            '("k", "m", "g" or "t"). Overrides settings contained in config files.'
+        ),
     )
     ap.add_argument(
-        '--executorCores',
-        action='store',
-        help=('The number of cores for each executor. Overrides settings contained '
-              'in config files.')
+        "--executorCores",
+        action="store",
+        help=(
+            "The number of cores for each executor. Overrides settings contained "
+            "in config files."
+        ),
     )
     ap.add_argument(
-        '--archives',
-        action='store',
-        help=('An archive to be used in this session. Parameter can be used multiple '
-              'times to provide multiple archives. Same deal as the `file` parameter. '
-              'These archives will be uploaded to HDFS.')
+        "--archives",
+        action="store",
+        help=(
+            "An archive to be used in this session. Parameter can be used multiple "
+            "times to provide multiple archives. Same deal as the `file` parameter. "
+            "These archives will be uploaded to HDFS."
+        ),
     )
     ap.add_argument(
-        '--queue',
-        action='store',
-        help='The YARN queue that your job should run in'
+        "--queue", action="store", help="The YARN queue that your job should run in"
     )
     ap.add_argument(
-        '--args',
-        action='store',
-        help=('Extra command line args for the application. If your python '
-              'main is expecting command line args, use this variable to pass '
-              'them in as space delimited. Will use shlex to split args')
+        "--args",
+        action="store",
+        help=(
+            "Extra command line args for the application. If your python "
+            "main is expecting command line args, use this variable to pass "
+            "them in as space delimited. Will use shlex to split args"
+        ),
     )
+
+
+def _livy_kill_func(livy_url: str, batchId: int):
+    api_instance = livy_api.LivyAPI(server_url=livy_url)
+    resp = api_instance.kill(batchId)
+    pprint(resp)
+
+
+def _livy_kill_parser(subparsers):
+    """
+    Configure the `livy kill` subparser
+    """
+    ap = subparsers.add_parser(
+        "kill",
+        help="Parser for killing a job that was submitted to the Livy /batches endpoint",
+    )
+    ap.set_defaults(func=_livy_kill_func)
+    ap.add_argument("batchId", help="The Livy batch ID that you want to terminate")
 
 
 def _make_parser() -> ArgumentParser:
     base = _base_parser()
-    subparsers = base.add_subparsers(help='sub-command help')
+    subparsers = base.add_subparsers(help="sub-command help")
     _livy_info_parser(subparsers)
     _livy_submit_parser(subparsers)
     return base
 
 
 def cli():
-    print('cli 1')
+    print("cli 1")
     ap = _make_parser()
-    print('cli 2')
+    print("cli 2")
 
     args = ap.parse_args()
 
     # set the pdb_hook as the except hook for all exceptions
     if args.pdb:
+
         def pdb_hook(exctype, value, traceback):
             pdb.post_mortem(traceback)
+
         sys.excepthook = pdb_hook
 
     # Convert args Namespace object into a dictionary for easier manipulation
     args_dict = {k: v for k, v in vars(args).items() if v is not None}
-    print('cli args: %s' % pformat(args_dict))
+    print("cli args: %s" % pformat(args_dict))
 
     # Get the sparkmagic configuration from its file
-    sparkmagic_config = _sparkmagic_config(args_dict.pop('sparkmagic_config'))
-    print('sparkmagic_config: %s' % pformat(sparkmagic_config))
+    sparkmagic_config = _sparkmagic_config(args_dict.pop("sparkmagic_config"))
+    print("sparkmagic_config: %s" % pformat(sparkmagic_config))
 
     # Get the Livy configuration from its file
-    livy_submit_config = _livy_submit_config(args_dict.pop('livy_submit_config'))
-    print('livy_submit_config: %s' % pformat(livy_submit_config))
+    livy_submit_config = _livy_submit_config(args_dict.pop("livy_submit_config"))
+    print("livy_submit_config: %s" % pformat(livy_submit_config))
 
     # Create a single, unified set of config parameters with the priority in
     # increasing order being: sparkmagic config, livy submit config, command line args
     cfg = {}
     cfg.update(sparkmagic_config)
-    print('config after adding sparkmagic_config:\n%s' % pformat(cfg))
+    print("config after adding sparkmagic_config:\n%s" % pformat(cfg))
     for k, v in livy_submit_config.items():
         if k not in cfg:
             cfg[k] = v
@@ -352,15 +389,15 @@ def cli():
                 cfg[k].update(v)
             else:
                 cfg[k] = v
-#     cfg.update(livy_submit_config)
-    print('config after adding livy_submit_config:\n%s' % pformat(cfg))
+    #     cfg.update(livy_submit_config)
+    print("config after adding livy_submit_config:\n%s" % pformat(cfg))
     cfg.update(args_dict)
-    print('config after adding CLI args:\n%s' % pformat(cfg))
-    print('cli 3')
+    print("config after adding CLI args:\n%s" % pformat(cfg))
+    print("cli 3")
 
     # Do the kinit before we run the subcommand
     # TODO: Implement this after we finalize the AE 5.2.3 secrets syntax
 
     # Run the specific function for each subcommand
-    cfg['func'](**cfg)
-    print('cli 4')
+    cfg["func"](**cfg)
+    print("cli 4")

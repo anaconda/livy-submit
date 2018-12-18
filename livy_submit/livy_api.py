@@ -5,9 +5,7 @@ from typing import List, Dict, Tuple
 
 
 class Batch:
-    def __init__(
-        self, id: str, appId: str, appInfo: Dict, log: List, state: str
-    ):
+    def __init__(self, id: str, appId: str, appInfo: Dict, log: List, state: str):
         self.id = id
         self.appId = appId
         self.appInfo = appInfo
@@ -29,11 +27,7 @@ class Batch:
 
 class LivyAPI:
     def __init__(
-        self,
-        server_url: str,
-        use_tls: bool = False,
-        headers: Dict = None,
-        auth=None,
+        self, server_url: str, use_tls: bool = False, headers: Dict = None, auth=None
     ):
         """
         Parameters
@@ -44,8 +38,7 @@ class LivyAPI:
         """
         if auth is None:
             auth = requests_kerberos.HTTPKerberosAuth(
-                mutual_authentication=requests_kerberos.REQUIRED,
-                force_preemptive=True,
+                mutual_authentication=requests_kerberos.REQUIRED, force_preemptive=True
             )
 
         self._auth = auth
@@ -219,12 +212,7 @@ class LivyAPI:
         data = {"from": starting_line, "size": num_lines}
         url = "%s/%s/log" % (self._base_url, batch_id)
         response = self._request("get", url, data=data)
-        return (
-            response["id"],
-            response["from"],
-            response["total"],
-            response["log"],
-        )
+        return (response["id"], response["from"], response["total"], response["log"])
 
     def kill(self, batchId: int):
         """

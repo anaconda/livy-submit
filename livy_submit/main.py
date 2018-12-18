@@ -25,10 +25,7 @@ DEFAULT_LIVY_PORT = "8998"
 def _make_arg_parser():
     ap = ArgumentParser(description="CLI for submitting batch jobs to Livy")
     ap.add_argument(
-        "-f",
-        "--file",
-        action="store",
-        help=("The local target file to run with Spark"),
+        "-f", "--file", action="store", help=("The local target file to run with Spark")
     )
     ap.add_argument(
         "--config",
@@ -108,9 +105,7 @@ def cli():
     else:
         loglevel = logging.INFO
         if loglevel > 2:
-            logger.warn(
-                "Passing in more than two '-v' will show no additional output"
-            )
+            logger.warn("Passing in more than two '-v' will show no additional output")
     logger.setLevel(loglevel)
     stream_handler.setLevel(loglevel)
     logger.debug("Log level set to {loglevel}")
@@ -181,9 +176,7 @@ def run(
     json_data = json.dumps(data)
     # 3. Submit job to livy /batches endpoint
     connection_url = livy_connection_url + "/batches"
-    r = requests.post(
-        connection_url, headers=headers, auth=auth, data=json_data
-    )
+    r = requests.post(connection_url, headers=headers, auth=auth, data=json_data)
     print(r.text)
 
     def get_id(response_json):

@@ -29,7 +29,7 @@ def delete(hdfs_dir: str, namenode_url: str):
     client = get_client(namenode_url)
     client.delete(hdfs_dir, recursive=True)
 
-    
+
 def get_kerberos_user() -> str:
     """Get the kerberos user from klist -e.
     
@@ -37,14 +37,13 @@ def get_kerberos_user() -> str:
     svc_user@MY.DOMAIN.COM -> svc_user
     
     """
-    unix_cmd = 'klist -e | grep Default | cut -d " " -f 3 | cut -d "@" -f 1 | cut -d "/" -f 1'
+    unix_cmd = (
+        'klist -e | grep Default | cut -d " " -f 3 | cut -d "@" -f 1 | cut -d "/" -f 1'
+    )
     return subprocess.check_output(unix_cmd, shell=True).decode().strip()
 
-def upload(
-    local_file: str,
-    namenode_url: str,
-    hdfs_dir: str = None,
-) -> str:
+
+def upload(local_file: str, namenode_url: str, hdfs_dir: str = None) -> str:
     """
     Parameters
     ----------

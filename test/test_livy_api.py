@@ -4,6 +4,7 @@ from livy_submit import livy_api, hdfs_api
 import hdfs
 from os.path import dirname
 
+
 @pytest.fixture(scope="session")
 def api_instance(LIVY_URL):
     return livy_api.LivyAPI(server_url=LIVY_URL)
@@ -12,9 +13,7 @@ def api_instance(LIVY_URL):
 @pytest.yield_fixture(scope="session")
 def upload_pi_file(NAMENODE_URL, pi_file, kinit):
     client = hdfs_api.get_client(NAMENODE_URL)
-    hdfs_filepath = hdfs_api.upload(
-        namenode_url=NAMENODE_URL, local_file=pi_file
-    )
+    hdfs_filepath = hdfs_api.upload(namenode_url=NAMENODE_URL, local_file=pi_file)
     hdfs_dirname = dirname(hdfs_filepath)
     resp = client.list(hdfs_dirname)
     assert "pi.py" in resp
@@ -26,9 +25,7 @@ def upload_pi_file(NAMENODE_URL, pi_file, kinit):
         client.list(hdfs_dirname)
 
 
-def test_end_to_end(
-    api_instance, kinit, upload_pi_file, livy_test_user_and_password
-):
+def test_end_to_end(api_instance, kinit, upload_pi_file, livy_test_user_and_password):
     """Given an uploaded pi.py executable, a valid Kerberos TGT and
     an active python Livy API instance, when we submit a job to the
     Livy server via the Python API, we should be able to query its status
