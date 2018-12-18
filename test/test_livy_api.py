@@ -2,7 +2,7 @@ import time
 import pytest
 from livy_submit import livy_api, hdfs_api
 import hdfs
-
+from os.path import dirname
 
 @pytest.fixture(scope="session")
 def api_instance(LIVY_URL):
@@ -12,13 +12,14 @@ def api_instance(LIVY_URL):
 @pytest.yield_fixture(scope="session")
 def upload_pi_file(NAMENODE_URL, pi_file, kinit):
     client = hdfs_api.get_client(NAMENODE_URL)
-    hdfs_dirname = hdfs_api.upload(
+    hdfs_filepath = hdfs_api.upload(
         namenode_url=NAMENODE_URL, local_file=pi_file
     )
+    hdfs_dirname = dirname(hdfs_filepath)
     resp = client.list(hdfs_dirname)
     assert "pi.py" in resp
 
-    yield "hdfs://%s/%s" % (hdfs_dirname, "pi.py")
+    yield "hdfs://%s" % hdfs_filepath
     # Now handle cleanup after the test function is completed
     hdfs_api.delete(hdfs_dir=hdfs_dirname, namenode_url=NAMENODE_URL)
     with pytest.raises(hdfs.util.HdfsError):

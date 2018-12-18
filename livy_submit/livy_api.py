@@ -153,7 +153,6 @@ class LivyAPI:
             e.g. 512m, 2g
             Amount of memory to use per executor process, in the same format as
             JVM memory strings with a size unit suffix ("k", "m", "g" or "t")
-            (e.g. 512m, 2g).
         executorCores : int, optional
             The number of cores to use on each executor
         archives : List of strings
