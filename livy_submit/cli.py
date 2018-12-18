@@ -8,6 +8,29 @@ import os
 import shlex
 import sys
 import pdb
+import logging
+
+logger = None
+
+
+def _init_logger(loglevel):
+    # set up the logger
+    global logger
+    logger = logging.getLogger('livy-submit')
+
+    # clear all handlers
+    for handler in logger.handlers:
+        logger.removeHandler(handler)
+    logger.setLevel(loglevel)
+    format_string = '%(levelname)s: %(message)s'
+    formatter = logging.Formatter(fmt=format_string)
+    stream_handler = logging.StreamHandler()
+    stream_handler.setLevel(loglevel)
+    stream_handler.setFormatter(fmt=formatter)
+
+    logger.addHandler(stream_handler)
+
+    print("Log level set to %s" % logging.getLevelName(loglevel), file=sys.stdout)
 
 
 def _sparkmagic_config(config_path: str) -> Dict:
@@ -19,11 +42,12 @@ def _sparkmagic_config(config_path: str) -> Dict:
     dict: Keys are "spark_config", "livy_url" and "livy_port"
     """
     if not os.path.exists(config_path):
-        print("%s not found. Cannot load sparkmagic defaults" % config_path)
+        logger.warn("%s not found. Cannot load sparkmagic defaults", config_path)
         return {}
     with open(config_path, "r") as f:
         cfg = json.loads(f.read())
-    spark_config = cfg.get("session_configs")
+    return_vals = {}
+    return_vals = cfg.get("session_configs", {})
     livy_server = cfg.get("kernel_python_credentials", {}).get("url")
     if livy_server is not None:
         url, port = livy_server.rsplit(":", maxsplit=1)
@@ -33,10 +57,12 @@ def _sparkmagic_config(config_path: str) -> Dict:
             "configuration (%s). Unable to automatically determine "
             "the location of your Livy server" % config_path
         )
-        print(err_str)
+        logger.error(err_str)
         url, port = None, None
 
-    return {"conf": spark_config, "livy_url": url, "livy_port": port}
+    return_vals.update({"livy_url": url, "livy_port": port})
+
+    return return_vals
 
 
 def _livy_submit_config(config_path: str) -> Dict:
@@ -58,7 +84,7 @@ def _livy_submit_config(config_path: str) -> Dict:
         args
     """
     if not os.path.exists(config_path):
-        print("%s not found. Cannot load livy submit defaults" % config_path)
+        logger.error("%s not found. Cannot load livy submit defaults", config_path)
         return {}
     with open(config_path, "r") as f:
         return json.loads(f.read())
@@ -121,6 +147,16 @@ def _base_parser():
         default=False,
         help="Drop into a debugger on client-side exception",
     )
+    ap.add_argument(
+        '-v', '--verbose',
+        action="store_true",
+        help="logging defaults to info. Switch to debug with -v/--verbose"
+    )
+    ap.add_argument(
+        '-q', '--quiet',
+        action="store_true",
+        help="logging defaults to info. Switch to warn with -q/--quiet"
+    )
     return ap
 
 
@@ -152,7 +188,7 @@ def _livy_info_func(livy_url, batchId=None, state=None, **kwargs):
         if state:
             resp = {id: batch.state for id, batch in resp.items()}
 
-    pprint(resp)
+    logger.info(pformat(resp))
 
 
 def _livy_info_parser(subparsers) -> ArgumentParser:
@@ -194,12 +230,12 @@ def _livy_submit_func(
     args: List[str] = None,
     **kwargs
 ):
-    print("conf:\n%s" % pformat(conf))
+    logger.debug("conf:\n%s", pformat(conf))
 
     if args is not None:
         args = shlex.split(args)
 
-    print("args:\n%s" % pformat(args))
+    logger.debug("args:\n%s", pformat(args))
 
     # upload file to hdfs
     hdfs_file_path = hdfs_api.upload(namenode_url=namenode_url, local_file=file)
@@ -232,9 +268,8 @@ def _livy_submit_func(
     api_instance = livy_api.LivyAPI(server_url=livy_url)
     batch = api_instance.submit(**submit_args)
 
-    # Print livy job into to the console
-    print("Batch job submitted to Livy API:")
-    pprint(batch)
+    # Log livy job into to the console
+    logger.info("Batch job submitted to Livy API:\n%s", pformat(batch))
 
 
 def _livy_submit_parser(subparsers):
@@ -327,7 +362,7 @@ def _livy_kill_func(livy_url: str, batchId: int):
     """
     api_instance = livy_api.LivyAPI(server_url=livy_url)
     resp = api_instance.kill(batchId)
-    pprint(resp)
+    logger.info("Job killed:\n%s", pformat(resp))
 
 
 def _livy_kill_parser(subparsers):
@@ -352,37 +387,45 @@ def _make_parser() -> ArgumentParser:
 
 
 def cli():
-    print("cli 1")
     ap = _make_parser()
-    print("cli 2")
 
     args = ap.parse_args()
 
+    loglevel = logging.INFO
+    if args.verbose:
+        loglevel = logging.DEBUG
+    if args.quiet:
+        loglevel = logging.WARNING
+
+    _init_logger(loglevel)
+
     # set the pdb_hook as the except hook for all exceptions
     if args.pdb:
-
         def pdb_hook(exctype, value, traceback):
             pdb.post_mortem(traceback)
-
         sys.excepthook = pdb_hook
 
     # Convert args Namespace object into a dictionary for easier manipulation
     args_dict = {k: v for k, v in vars(args).items() if v is not None}
-    print("cli args: %s" % pformat(args_dict))
+
+    # Trim args we've already used
+    del args_dict['verbose']
+    del args_dict['pdb']
+    logger.debug("cli args: %s", pformat(args_dict))
 
     # Get the sparkmagic configuration from its file
     sparkmagic_config = _sparkmagic_config(args_dict.pop("sparkmagic_config"))
-    print("sparkmagic_config: %s" % pformat(sparkmagic_config))
+    logger.debug("sparkmagic_config: %s", pformat(sparkmagic_config))
 
     # Get the Livy configuration from its file
     livy_submit_config = _livy_submit_config(args_dict.pop("livy_submit_config"))
-    print("livy_submit_config: %s" % pformat(livy_submit_config))
+    logger.debug("livy_submit_config: %s", pformat(livy_submit_config))
 
     # Create a single, unified set of config parameters with the priority in
     # increasing order being: sparkmagic config, livy submit config, command line args
     cfg = {}
     cfg.update(sparkmagic_config)
-    print("config after adding sparkmagic_config:\n%s" % pformat(cfg))
+    logger.debug("config after adding sparkmagic_config:\n%s", pformat(cfg))
     for k, v in livy_submit_config.items():
         if k not in cfg:
             cfg[k] = v
@@ -394,14 +437,12 @@ def cli():
             else:
                 cfg[k] = v
     #     cfg.update(livy_submit_config)
-    print("config after adding livy_submit_config:\n%s" % pformat(cfg))
+    logger.debug("config after adding livy_submit_config:\n%s", pformat(cfg))
     cfg.update(args_dict)
-    print("config after adding CLI args:\n%s" % pformat(cfg))
-    print("cli 3")
+    logger.debug("config after adding CLI args:\n%s", pformat(cfg))
 
     # Do the kinit before we run the subcommand
     # TODO: Implement this after we finalize the AE 5.2.3 secrets syntax
 
     # Run the specific function for each subcommand
     cfg["func"](**cfg)
-    print("cli 4")
