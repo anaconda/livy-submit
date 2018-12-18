@@ -6,12 +6,12 @@ import subprocess
 
 @pytest.fixture(scope="session")
 def NAMENODE_URL():
-    return "ip-172-31-20-241.ec2.internal"
+    return "http://ip-172-31-20-241.ec2.internal:50070"
 
 
 @pytest.fixture(scope="session")
 def LIVY_URL():
-    return "ip-172-31-20-241.ec2.internal"
+    return "http://ip-172-31-20-241.ec2.internal:8998"
 
 
 @pytest.fixture(scope="session")

@@ -1,0 +1,11 @@
+{
+    "namenode_url": "http://ip-172-31-20-241.ec2.internal:50070",
+    "livy_url": "http://ip-172-31-20-241.ec2.internal:8998",
+    "driverMemory": "4g",
+    "driverCores": 2,
+    "executorMemory": "2g",
+    "executorCores": 1,
+    "conf": {
+        "spark.pyspark.python": "/mnt/anaconda/anaconda2/bin/python"
+    }
+}

@@ -31,7 +31,6 @@ class LivyAPI:
     def __init__(
         self,
         server_url: str,
-        port: int = 8998,
         use_tls: bool = False,
         headers: Dict = None,
         auth=None,
@@ -39,9 +38,7 @@ class LivyAPI:
         """
         Parameters
         ----------
-        server_url: The URL of the livy server
-        port: The port that Livy is listening on
-        use_tls, optional: (True) use https (False) use http
+        server_url: The URL of the livy server. Should include protocol (http/https) and port
         headers, optional: A dictionary for the API request to Livy.
         auth, optional: An object for `requests` to use in its `auth` keyword.
         """
@@ -53,11 +50,7 @@ class LivyAPI:
 
         self._auth = auth
 
-        protocol = "http"
-        if use_tls:
-            protocol = "https"
-
-        self._base_url = "%s://%s:%s/batches" % (protocol, server_url, port)
+        self._base_url = "%s/batches" % server_url
 
         if headers is None:
             headers = {"Content-Type": "application/json"}

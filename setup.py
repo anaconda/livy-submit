@@ -6,5 +6,5 @@ setup(
     cmdclass=versioneer.get_cmdclass(),
     name="livy-submit",
     packages=find_packages(),
-    entry_points={"console_scripts": ["livy-submit = livy_submit.main:cli"]},
+    entry_points={"console_scripts": ["livy-submit = livy_submit.cli:cli"]},
 )
