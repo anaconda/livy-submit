@@ -1,11 +1,14 @@
 from argparse import ArgumentParser
-from os.path import expanduser
+from os.path import expanduser, dirname
 from typing import Dict, List
 from . import livy_api, hdfs_api
 from pprint import pprint, pformat
 import json
 import os
 import shlex
+import sys
+import pdb
+import traceback
 
 def _sparkmagic_config(config_path: str) -> Dict:
     """Read the sparkmagic configuration file for the 
@@ -31,7 +34,7 @@ def _sparkmagic_config(config_path: str) -> Dict:
         print(err_str)
         url, port = None, None
 
-    return {'spark_config': spark_config, 'livy_url': url, 'livy_port': port}
+    return {'conf': spark_config, 'livy_url': url, 'livy_port': port}
 
 
 def _livy_submit_config(config_path: str) -> Dict:
@@ -52,6 +55,9 @@ def _livy_submit_config(config_path: str) -> Dict:
         conf
         args
     """
+    if not os.path.exists(config_path):
+        print('%s not found. Cannot load livy submit defaults' % config_path)
+        return {}
     with open(config_path, 'r') as f:
         return json.loads(f.read())
     
@@ -86,7 +92,7 @@ def _base_parser():
     ap.add_argument(
         "--livy-submit-config",
         action="store",
-        default=expanduser("~/.livy-submit"),
+        default=expanduser("~/.livy-submit.json"),
         help="The location of the livy submit configuration file",
     )
     ap.add_argument(
@@ -149,6 +155,7 @@ def _livy_info(subparsers) -> ArgumentParser:
         'info',
         help="Parser for getting info on an active Livy job"
     )
+    ap.set_defaults(func=_info_func)
     ap.add_argument(
         "--state",
         action="store_true",
@@ -156,11 +163,12 @@ def _livy_info(subparsers) -> ArgumentParser:
         help="Only show the current status of the job",
     )
     ap.add_argument(
-        "--batchId",
+        "batchId",
         action="store",
+        nargs="?",
+        default=None,
         help="The Livy batch ID that you want information for",
     )
-    ap.set_defaults(func=_info_func)
 
 
 def _submit_func(
@@ -179,23 +187,49 @@ def _submit_func(
     args: List[str] = None,
     **kwargs
 ):
-    if conf is not None:
-        conf = dict([(_.split('=')) for _ in conf])
-    
-    print('conf:\ns' % pformat(conf))
+    print('conf:\n%s' % pformat(conf))
     
     if args is not None:
         args = shlex.split(args)
     
-    print('args:\ns' % pformat(args))
+    print('args:\n%s' % pformat(args))
         
-    api_instance = livy_api.LivyAPI(server_url=livy_url)
     
     # upload file to hdfs
+    hdfs_file_path = hdfs_api.upload(namenode_url=namenode_url, local_file=file)
+    hdfs_file_path = 'hdfs://%s' % hdfs_file_path
     # upload archives to hdfs
+    hdfs_dirname = dirname(hdfs_file_path)
+    if archives is not None:
+        hdfs_archives = []
+        for archive in archives:
+            archive_path = hdfs_api.upload(
+                namenode_url=namenode_url, 
+                local_file=archive, 
+                hdfs_dir=dfs_dir)
+            hdfs_archives.append('hdfs://%s' % hdfs_archive_path)
+        archives = hdfs_archives
+    # format args to pass to the livy submit API
+    submit_args = {
+        'name': name,
+        'file': hdfs_file_path,
+        'driverMemory': driverMemory,
+        'driverCores': driverCores,
+        'executorMemory': executorMemory,
+        'executorCores': executorCores,
+        'numExecutors': numExecutors,
+        'archives': archives,
+        'queue': queue,
+        'conf': conf,
+        'args': args
+    }
+    # submit livy job
+    api_instance = livy_api.LivyAPI(server_url=livy_url)
+    batch = api_instance.submit(**submit_args)
     
-
-    pass
+    # Print livy job into to the console
+    print("Batch job submitted to Livy API:")
+    pprint(batch)
 
 def _livy_submit(subparsers):
     """
@@ -206,6 +240,7 @@ def _livy_submit(subparsers):
         'submit',
         help="Parser for submitting a job to the Livy /batches endpoint"
     )
+    ap.set_defaults(func=_submit_func)
     ap.add_argument(
         '--name',
         action='store',
@@ -261,17 +296,6 @@ def _livy_submit(subparsers):
         help='The YARN queue that your job should run in'
     )
     ap.add_argument(
-        '--conf',
-        action='append',
-        help=('k=v pairs of additional spark configuration properties. Any valid '
-              'variable listed in the spark configuration for your version of '
-              'spark. See all here: https://spark.apache.org/docs/latest'
-              '/configuration.html '
-              'e.g.: --conf "spark.pyspark.python=/opt/anaconda3/bin/python" '
-              'Can be used multiple times for as many spark parameters as you '
-              'need to set.')
-    )
-    ap.add_argument(
         '--args',
         action='store',
         help=('Extra command line args for the application. If your python '
@@ -294,17 +318,18 @@ def cli():
     ap = _make_parser()
     print('cli 2')
     
-    # Convert args Namespace object into a dictionary for easier manipulation
     args = ap.parse_args()
-    args_dict = {k: v for k, v in vars(args) if v is not None}
-    print('cli args: %s' % pformat(args_dict))
     
     # set the pdb_hook as the except hook for all exceptions
-    pdb = args_dict.pop('pdb')
-    if pdb:
+    if args.pdb:
         def pdb_hook(exctype, value, traceback):
             pdb.post_mortem(traceback)
         sys.excepthook = pdb_hook
+        
+    # Convert args Namespace object into a dictionary for easier manipulation
+    args_dict = {k: v for k, v in vars(args).items() if v is not None}
+    print('cli args: %s' % pformat(args_dict))
+    
         
     # Get the sparkmagic configuration from its file
     sparkmagic_config = _sparkmagic_config(args_dict.pop('sparkmagic_config'))
@@ -318,13 +343,26 @@ def cli():
     # increasing order being: sparkmagic config, livy submit config, command line args
     cfg = {}
     cfg.update(sparkmagic_config)
-    print('config after adding sparkmagic_config:\n%s' % pformat(sparkmagic_config))
-    cfg.update(livy_submit_config)
-    print('config after adding livy_submit_config:\n%s' % pformat(livy_submit_config))
+    print('config after adding sparkmagic_config:\n%s' % pformat(cfg))
+    for k, v in livy_submit_config.items():
+        if k not in cfg:
+            cfg[k] = v
+        else:
+            if isinstance(v, (tuple, list)):
+                cfg[k] += v
+            elif isinstance(v, dict):
+                cfg[k].update(v)
+            else:
+                cfg[k] = v
+#     cfg.update(livy_submit_config)
+    print('config after adding livy_submit_config:\n%s' % pformat(cfg))
     cfg.update(args_dict)
-    print('config after adding CLI args:\n%s' % pformat(args_dict))
+    print('config after adding CLI args:\n%s' % pformat(cfg))
     print('cli 3')
     
+    # Do the kinit before we run the subcommand
+    # TODO: Implement this after we finalize the AE 5.2.3 secrets syntax
+    
     # Run the specific function for each subcommand
-    args.func(**cfg)
+    cfg['func'](**cfg)
     print('cli 4')

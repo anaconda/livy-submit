@@ -6,6 +6,7 @@
     "executorMemory": "2g",
     "executorCores": 1,
     "conf": {
-        "spark.pyspark.python": "/mnt/anaconda/anaconda2/bin/python"
+        "spark.pyspark.python": "/mnt/anaconda/anaconda2/bin/python",
+        "executorCores": 4
     }
 }
