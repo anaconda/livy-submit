@@ -18,6 +18,8 @@ def get_client(namenode_url: str, namenode_port: int = None) -> KerberosClient:
         value of module-level variable _NAMENODE_PORT.
     """
     port = namenode_port or _NAMENODE_PORT
+    if not namenode_url.startswith('http'):
+        namenode_url = 'http://%s' % namenode_url
     return KerberosClient('%s:%s' % (namenode_url, port))
 
 

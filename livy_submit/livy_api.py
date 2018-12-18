@@ -11,6 +11,13 @@ class Batch:
         self.appInfo = appInfo
         self.log = log
         self.state = state
+        
+    def __eq__(self, other):
+        """Make an equality comparison ignoring the logs"""
+        return (self.id == other.id and 
+                self.appId == other.appId and 
+                self.appInfo == other.appInfo and
+                self.state == other.state)
 
     def __repr__(self):
         return f"Batch(id={self.id}, appId={self.appId}, appInfo={self.appInfo}, log=[see self.log], state={self.state})"
@@ -110,7 +117,7 @@ class LivyAPI:
         """
         url = "%s/%s/state" % (self._base_url, batch_id)
         response = self._request("get", url)
-        return response
+        return response['id'], response['state']
 
     def submit(
         self,
