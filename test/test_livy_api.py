@@ -2,37 +2,6 @@ import time
 import pytest
 from livy_submit import livy_api, hdfs_api
 import hdfs
-import pexpect
-import subprocess
-
-
-@pytest.fixture(scope='session')
-def livy_test_user_and_password():
-    return 'edill', 'anaconda'
-
-
-@pytest.fixture(scope='session')
-def kinit(livy_test_user_and_password):
-    """
-    Use pexpect to run kinit so we can access resources that
-    require kerberos authentication
-    """
-    username, password = livy_test_user_and_password
-    p = pexpect.spawn('kinit %s' % username)
-    p.sendline(password)
-    p.expect(pexpect.EOF)
-    p.close()
-    
-    if p.exitstatus == 0:
-        print(subprocess.check_output('klist').decode())
-    else:
-        output = p.before.decode()
-        raise RuntimeError('kinit unsuccessful. Here is the full output from the kinit attempt:\n%s' % output)
-
-    yield
-    # Now handle cleanup after the test function is completed    
-    # Destroy the kerberos TGT for the username that we kinit'd as
-    resp = subprocess.check_call('kdestroy')
 
     
 @pytest.fixture(scope='session')
@@ -67,7 +36,7 @@ def test_end_to_end(api_instance, kinit, upload_pi_file, livy_test_user_and_pass
         file=upload_pi_file)
     print(job1)
         
-    # Make sure that 
+    # Make sure that the info function is returning the correct job
     resp = api_instance.info(job1.id)
     assert resp == job1
        
@@ -113,3 +82,18 @@ def test_all_info(api_instance, kinit):
     resp = api_instance.all_info()
     
 
+def test_kill(api_instance, kinit, upload_pi_file, livy_test_user_and_password):
+    """Given an uploaded pi.py executable, a valid Kerberos TGT and 
+    an active python Livy API instance, when we submit a job to the
+    Livy server via the Python API, we should be able to query its status
+    via the API methods
+    """
+    print(upload_pi_file)
+    job1 = api_instance.submit(
+        name='test-job-from-pytest-%s' % time.time(),
+        file=upload_pi_file)
+    print(job1)
+    
+    ret = api_instance.kill(job1.id)
+    
+    print(ret)

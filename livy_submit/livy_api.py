@@ -106,14 +106,12 @@ class LivyAPI:
 
         Parameters
         ----------
-        batch_id : str
+        batch_id: The ID of the livy /batches job.
 
         Returns
         -------
-        int
-            Batch session id
-        str
-            The current state of batch session
+        int: Batch session id
+        str: The current state of batch session
         """
         url = "%s/%s/state" % (self._base_url, batch_id)
         response = self._request("get", url)
