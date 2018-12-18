@@ -322,6 +322,9 @@ def _livy_submit_parser(subparsers):
 
 
 def _livy_kill_func(livy_url: str, batchId: int):
+    """
+    Terminate a Livy job and delete its state from the Livy server
+    """
     api_instance = livy_api.LivyAPI(server_url=livy_url)
     resp = api_instance.kill(batchId)
     pprint(resp)
@@ -333,7 +336,8 @@ def _livy_kill_parser(subparsers):
     """
     ap = subparsers.add_parser(
         "kill",
-        help="Parser for killing a job that was submitted to the Livy /batches endpoint",
+        help=("Parser for killing a job that was submitted to the Livy /batches. "
+              "Note that this also deletes the job info from the Livy server."),
     )
     ap.set_defaults(func=_livy_kill_func)
     ap.add_argument("batchId", help="The Livy batch ID that you want to terminate")
