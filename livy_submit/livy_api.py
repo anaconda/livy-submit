@@ -186,8 +186,8 @@ class LivyAPI:
         response = self._request("post", self._base_url, data=data)
         return Batch(**response)
 
-    def logs(
-        self, batch_id: int, starting_line: int = 0, num_lines: int = 10
+    def log(
+        self, batch_id: int, starting_line: int = None, num_lines: int = None
     ) -> Tuple[int, int, int, List[str]]:
         """
         Get the log lines from the batch job represented by `session_id`
@@ -198,9 +198,9 @@ class LivyAPI:
 
         Parameters
         ----------
-        batch_id : The job to get info for
-        starting_line : Offset
-        num_lines : Max number of log lines to return
+        batch_id: The job to get info for
+        starting_line: (optional) The offset from zero for the log lines
+        num_lines: (optional) Max number of log lines to return
 
         Returns
         -------
@@ -209,7 +209,11 @@ class LivyAPI:
         int: Number of log lines
         list of strings: The log lines
         """
-        data = {"from": starting_line, "size": num_lines}
+        data = {}
+        if starting_line is not None:
+            data['from'] = starting_line
+        if num_lines is not None:
+            data['size'] = num_lines
         url = "%s/%s/log" % (self._base_url, batch_id)
         response = self._request("get", url, data=data)
         return (response["id"], response["from"], response["total"], response["log"])

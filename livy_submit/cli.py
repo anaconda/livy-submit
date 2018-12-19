@@ -16,13 +16,13 @@ logger = None
 def _init_logger(loglevel):
     # set up the logger
     global logger
-    logger = logging.getLogger('livy-submit')
+    logger = logging.getLogger("livy-submit")
 
     # clear all handlers
     for handler in logger.handlers:
         logger.removeHandler(handler)
     logger.setLevel(loglevel)
-    format_string = '%(asctime)-15s %(levelname)s: %(message)s'
+    format_string = "%(asctime)-15s %(levelname)s: %(message)s"
     formatter = logging.Formatter(fmt=format_string)
     stream_handler = logging.StreamHandler()
     stream_handler.setLevel(loglevel)
@@ -105,9 +105,7 @@ def _base_parser():
     ArgumentParser
     """
     ap = ArgumentParser(
-        prog="livy-submit",
-        description="CLI for interacting with the Livy REST API",
-        add_help=False,
+        prog="livy-submit", description="CLI for interacting with the Livy REST API", add_help=False
     )
     ap.add_argument(
         "--sparkmagic-config",
@@ -128,17 +126,13 @@ def _base_parser():
     ap.add_argument(
         "--namenode-url",
         action="store",
-        help=(
-            "The url of the namenode. Should include protocol "
-            "(http/https) and port (50070)"
-        ),
+        help=("The url of the namenode. Should include protocol " "(http/https) and port (50070)"),
     )
     ap.add_argument(
         "--livy-url",
         action="store",
         help=(
-            "The url of the Livy server. Should include protocol "
-            "(http/https) and port (8998)"
+            "The url of the Livy server. Should include protocol " "(http/https) and port (8998)"
         ),
     )
     ap.add_argument(
@@ -148,14 +142,16 @@ def _base_parser():
         help="Drop into a debugger on client-side exception",
     )
     ap.add_argument(
-        '-v', '--verbose',
+        "-v",
+        "--verbose",
         action="store_true",
-        help="logging defaults to info. Switch to debug with -v/--verbose"
+        help="logging defaults to info. Switch to debug with -v/--verbose",
     )
     ap.add_argument(
-        '-q', '--quiet',
+        "-q",
+        "--quiet",
         action="store_true",
-        help="logging defaults to info. Switch to warn with -q/--quiet"
+        help="logging defaults to info. Switch to warn with -q/--quiet",
     )
     return ap
 
@@ -195,9 +191,7 @@ def _livy_info_parser(subparsers) -> ArgumentParser:
     """
     Configure the `livy info` subparser
     """
-    ap = subparsers.add_parser(
-        "info", help="Parser for getting info on an active Livy job"
-    )
+    ap = subparsers.add_parser("info", help="Parser for getting info on an active Livy job")
     ap.set_defaults(func=_livy_info_func)
     ap.add_argument(
         "--state",
@@ -342,9 +336,7 @@ def _livy_submit_parser(subparsers):
             "These archives will be uploaded to HDFS."
         ),
     )
-    ap.add_argument(
-        "--queue", action="store", help="The YARN queue that your job should run in"
-    )
+    ap.add_argument("--queue", action="store", help="The YARN queue that your job should run in")
     ap.add_argument(
         "--args",
         action="store",
@@ -371,11 +363,56 @@ def _livy_kill_parser(subparsers):
     """
     ap = subparsers.add_parser(
         "kill",
-        help=("Parser for killing a job that was submitted to the Livy /batches. "
-              "Note that this also deletes the job info from the Livy server."),
+        help=(
+            "Parser for killing a job that was submitted to the Livy /batches. "
+            "Note that this also deletes the job info from the Livy server."
+        ),
     )
     ap.set_defaults(func=_livy_kill_func)
     ap.add_argument("batchId", help="The Livy batch ID that you want to terminate")
+
+
+def _livy_log_func(livy_url: str, batchId: int, follow: bool):
+    """
+    Implement the `log` and `log -f` functionality
+    """
+
+    api_instance = livy_api.LivyAPI(server_url=livy_url)
+
+    # Get the current logs. We need to do this in either case
+    _, state = api_instance.state(batchId)
+    _, offset, num, logs = api_instance.log(batchId)
+    logger.info('\n'.join(logs))
+
+    if not follow:
+        # Early exit if we are just looking for the logs once
+        return
+
+    while state == 'running':
+        _, offset, num, logs = api_instance.log(batchId, starting_line=offset+num)
+        logger.info('\n'.join(logs))
+
+
+def _livy_log_parser(subparsers):
+    """
+    Configure the `livy log` and `livy log -f` parser
+    """
+    ap = subparsers.add_parser(
+        "log",
+        help=(
+            "Parser for killing a job that was submitted to the Livy /batches. "
+            "Note that this also deletes the job info from the Livy server."
+        ),
+    )
+    ap.set_defaults(func=_livy_log_func)
+    ap.add_argument("batchId", help="The Livy batch ID that you want to terminate")
+    ap.add_argument(
+        "-f",
+        default=False,
+        action="store_true",
+        help=("Regularly poll Livy, fetch the most recent log lines and "
+              "print them to the terminal")
+    )
 
 
 def _make_parser() -> ArgumentParser:
@@ -402,16 +439,18 @@ def cli():
 
     # set the pdb_hook as the except hook for all exceptions
     if args.pdb:
+
         def pdb_hook(exctype, value, traceback):
             pdb.post_mortem(traceback)
+
         sys.excepthook = pdb_hook
 
     # Convert args Namespace object into a dictionary for easier manipulation
     args_dict = {k: v for k, v in vars(args).items() if v is not None}
 
     # Trim args we've already used
-    del args_dict['verbose']
-    del args_dict['pdb']
+    del args_dict["verbose"]
+    del args_dict["pdb"]
     logger.debug("cli args: %s", pformat(args_dict))
 
     # Get the sparkmagic configuration from its file
