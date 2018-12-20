@@ -9,6 +9,8 @@ import shlex
 import sys
 import pdb
 import logging
+import time
+
 
 logger = None
 
@@ -23,6 +25,7 @@ def _init_logger(loglevel):
         logger.removeHandler(handler)
     logger.setLevel(loglevel)
     format_string = "%(asctime)-15s %(levelname)s: %(message)s"
+    format_string = ""
     formatter = logging.Formatter(fmt=format_string)
     stream_handler = logging.StreamHandler()
     stream_handler.setLevel(loglevel)
@@ -30,7 +33,7 @@ def _init_logger(loglevel):
 
     logger.addHandler(stream_handler)
 
-    print("Log level set to %s" % logging.getLevelName(loglevel), file=sys.stdout)
+    logger.debug("Log level set to %s" % logging.getLevelName(loglevel))
 
 
 def _sparkmagic_config(config_path: str) -> Dict:
@@ -177,6 +180,7 @@ def _livy_info_func(livy_url, batchId=None, state=None, **kwargs):
     if batchId is not None:
         if state:
             _, resp = api_instance.state(batchId)
+#             resp = eval(resp)
         else:
             resp = api_instance.info(batchId)
     else:
@@ -184,7 +188,8 @@ def _livy_info_func(livy_url, batchId=None, state=None, **kwargs):
         if state:
             resp = {id: batch.state for id, batch in resp.items()}
 
-    logger.info(pformat(resp))
+#     logger.info(pformat(resp))
+    logger.info(resp)
 
 
 def _livy_info_parser(subparsers) -> ArgumentParser:
@@ -229,7 +234,7 @@ def _livy_submit_func(
     if args is not None:
         args = shlex.split(args)
 
-    logger.debug("args:\n%s", pformat(args))
+    logger.debug("Value of args parameter:\n%s", pformat(args))
 
     # upload file to hdfs
     hdfs_file_path = hdfs_api.upload(namenode_url=namenode_url, local_file=file)
@@ -293,7 +298,17 @@ def _livy_submit_parser(subparsers):
         ),
     )
     ap.add_argument(
+        "--archives",
+        action="append",
+        help=(
+            "An archive to be used in this session. Parameter can be used multiple "
+            "times to provide multiple archives. Same deal as the `file` parameter. "
+            "These archives will be uploaded to HDFS."
+        ),
+    )
+    ap.add_argument(
         "--driver-memory",
+        dest='driverMemory',
         action="store",
         help=(
             "e.g. 512m, 2g. Amount of memory to use for the driver process, i.e. "
@@ -303,15 +318,18 @@ def _livy_submit_parser(subparsers):
         ),
     )
     ap.add_argument(
-        "--driverCores",
+        "--driver-cores",
+        dest='driverCores',
         action="store",
+        type=int,
         help=(
             "Number of cores to use for the driver process, only in cluster mode. "
             "Overrides settings contained in config files."
         ),
     )
     ap.add_argument(
-        "--executorMemory",
+        "--executor-memory",
+        dest='executorMemory',
         action="store",
         help=(
             "e.g. 512m, 2g. Amount of memory to use per executor process, in "
@@ -320,21 +338,21 @@ def _livy_submit_parser(subparsers):
         ),
     )
     ap.add_argument(
-        "--executorCores",
+        "--executor-cores",
+        dest='executorCores',
         action="store",
+        type=int,
         help=(
             "The number of cores for each executor. Overrides settings contained "
             "in config files."
         ),
     )
     ap.add_argument(
-        "--archives",
+        "--num-executors",
+        dest='numExecutors',
         action="store",
-        help=(
-            "An archive to be used in this session. Parameter can be used multiple "
-            "times to provide multiple archives. Same deal as the `file` parameter. "
-            "These archives will be uploaded to HDFS."
-        ),
+        type=int,
+        help=("Number of executors to launch for this session"),
     )
     ap.add_argument("--queue", action="store", help="The YARN queue that your job should run in")
     ap.add_argument(
@@ -372,25 +390,51 @@ def _livy_kill_parser(subparsers):
     ap.add_argument("batchId", help="The Livy batch ID that you want to terminate")
 
 
-def _livy_log_func(livy_url: str, batchId: int, follow: bool):
+def _livy_log_func(livy_url: str, batchId: int, follow: bool, **kwargs):
     """
     Implement the `log` and `log -f` functionality
     """
-
+    print('value of follow: %s' % follow)
     api_instance = livy_api.LivyAPI(server_url=livy_url)
 
     # Get the current logs. We need to do this in either case
-    _, state = api_instance.state(batchId)
-    _, offset, num, logs = api_instance.log(batchId)
-    logger.info('\n'.join(logs))
-
     if not follow:
+        _, offset, num, stdout, stderr = api_instance.log(batchId)
+        logger.info('stdout logs')
+        logger.info('\n'.join(stdout))
+        logger.info('stderr logs')
+        logger.info('\n'.join(stderr))
+
         # Early exit if we are just looking for the logs once
         return
+    
+    # Start by showing all available logs
+    prev_num = 0
+    # Give a fake state so we go through the loop at least once
+    state = 'starting'
+    total_new_lines = 0
+    total_lines = 0
+    while state in ('running', 'starting'):
+        _, state = api_instance.state(batchId)
+#         _, offset, num, stdout, stderr = api_instance.log(batchId, starting_line=total_lines)
+        _, offset, num, stdout, stderr = api_instance.log(batchId)
 
-    while state == 'running':
-        _, offset, num, logs = api_instance.log(batchId, starting_line=offset+num)
-        logger.info('\n'.join(logs))
+        total_lines += num
+
+        # How many new lines are there?
+        new_lines = num - prev_num
+        total_new_lines += new_lines
+        if new_lines > 0:
+            logger.info('\n'.join(stdout[-new_lines:]))
+
+        # Store the state for the next loop iteration
+        prev_num = num
+        # Delay a little bit so we're not hammering the Livy server
+        time.sleep(1)
+        
+    logger.debug('total lines received from Livy API: %s' % total_lines)
+    logger.debug('total lines logged: %s' % total_new_lines)
+    logger.debug('number of log lines from the API: %s' % num)
 
 
 def _livy_log_parser(subparsers):
@@ -407,7 +451,7 @@ def _livy_log_parser(subparsers):
     ap.set_defaults(func=_livy_log_func)
     ap.add_argument("batchId", help="The Livy batch ID that you want to terminate")
     ap.add_argument(
-        "-f",
+        "-f", "--follow",
         default=False,
         action="store_true",
         help=("Regularly poll Livy, fetch the most recent log lines and "
@@ -421,6 +465,7 @@ def _make_parser() -> ArgumentParser:
     _livy_info_parser(subparsers)
     _livy_submit_parser(subparsers)
     _livy_kill_parser(subparsers)
+    _livy_log_parser(subparsers)
     return base
 
 

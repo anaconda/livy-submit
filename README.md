@@ -6,6 +6,94 @@ CLI for submitting batch spark jobs to livy. Think spark-submit
 1. Your client must be able to see the livy server
 2. Your client must be able to see the Namenode so you can upload your python files to HDFS so that
    Spark can pull them down at runtime.
+3. You must have webHDFS enabled. (or HttpFS, though that has not been tested yet)
+
+## Usage
+
+### `livy submit`
+
+The main entry point for this code is `livy submit` which lets you execute PySpark files in batch mode. The main flag that you will care about when executing PySpark code is `--file`, which should contain the main entry point into your PySpark job. You must also provide a name for your spark job via the `--name` flag. That looks like this:
+
+```
+livy submit --name my-spark-job --file pi.py
+```
+
+You can add supporting files to this with the `--archives` flag. `--archives` can be used multiple times to add multiple archives. These archives can probably be any format, but I'd stick with zip files. These zip files will be extracted into your YARN container working directory so you can reference them via local paths in your code. 
+
+```
+livy submit --name my-spark-job --file pi.py --archives supporting-archive.zip --archives supporting-archive2.zip
+```
+
+You can also add a few special-cased configuration objects via the command line:
+
+```
+livy submit --file pi.py --driver-memory 4g --driver-cores 2 --executor-memory 2g --executor-cores 1 --num-executors 10 --queue prod
+```
+
+You can pass command line arguments to your execution file by using the `--args` flag. You should pass this a quoted string. If you were running your execution file locally like this:
+
+```
+pi.py 1 2 --var1 1 --var2 1,2
+```
+
+Then the corresponding `livy-submit` submission would look like this:
+
+```
+livy submit --name my-prog-with-args --file pi.py --args "1 2 --var1 1 --var2 1,2"
+```
+
+Finally, there is a configuration file that you can stuff all of these parameters (and a few more). `livy-submit` will look for a file located here by default: `~/.livy-submit.json`. You can configure this with the `--livy-submit-config` flag. `livy-submit` will also look for a sparkmagic config.json file since that may contain the URL/port for your Livy server. `livy-submit` looks by default in `~/.sparkmagic/config.json` but can be pointed else where with the `--sparkmagic-config` flag on the command line. These, taken together, look like this:
+
+```
+livy --sparkmagic-config ~/.config.json \
+    --livy-submit-config ~/.config/livy-submit.json \
+    submit \
+    --name my-job-with-custom-config
+    --file pi.py
+```
+
+In the above example, note specifically that the two config flags must come before the `submit` subcommand.
+
+The CLI has a number of defaults built in. The livy submit config file can set any of these values. Additionally, values specified on the command line will take precedence over values set in the config file. For example, my livy-submit.json file looks like this:
+
+```
+{
+    "namenode_url": "http://ip-172-31-20-241.ec2.internal:50070",
+    "livy_url": "http://ip-172-31-20-241.ec2.internal:8998",
+    "driver_memory": "4g",
+    "driver_cores": 2,
+    "executor_memory": "2g",
+    "executor_cores": 1,
+    "conf": {
+        "spark.pyspark.python": "/mnt/anaconda/anaconda2/bin/python",
+    }
+}
+```
+
+This above file lets me simplify my command line invocation to:
+
+```
+livy submit --name livy-submit-test --file test/data/pi.py
+```
+
+Without this config file, it would look something like this:
+```
+livy --namenode-url http://ip-172-31-20-241.ec2.internal:50070 \
+    --livy-url http://ip-172-31-20-241.ec2.internal:8998 \
+    submit \
+    --name livy-submit-test \
+    --file test/data/pi.py \
+    --driver-memory 4g \
+    --driver-cores 2 \
+    --executor-memory 2g \
+    --executor-cores 1
+```
+
+NOTE: You can only set arbitrary spark configuration via the livy-submit.json file. Parsing that on the command line is sufficiently complex that we are not shipping that capability yet. If you need to be able to specify arbitrary spark parameters at the command line (e.g., `--conf spark.pyspark.python='/opt/anaconda/bin/python'`) then please reach out to your Customer Success Manager and we can discuss implementing this functionality for you.
+
+### `livy log`
+
+There are two ways to access logs for submitted batch jobs: `livy log <batchId>` and `livy log <batchId> -f`. The `-f` flag will "follow" the logs by querying the Livy API for its logs and then showing the new lines.
 
 ## Dev
 To use, pip install in editable mode `pip install -e .`
@@ -15,7 +103,7 @@ Then you can use the `livy-submit` CLI
 (Possibly incomplete) Requirements are:
 * python-hdfs
 * requests-kerberos
-* reuests
+* requests
 
 ## Example
 Run this code snippet to submit a spark job to the livy endpoint in the SA Lab cluster in the

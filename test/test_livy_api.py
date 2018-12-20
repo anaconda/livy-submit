@@ -54,8 +54,8 @@ def test_end_to_end(api_instance, kinit, upload_pi_file, livy_test_user_and_pass
     tstart = time.time()
     while state in ("starting", "running"):
         if time.time() - tstart > 60:
-            batch_id, offset, total, logs = api_instance.logs(job1.id)
-            print("\n".join(logs))
+            batch_id, offset, total, stdout, stderr = api_instance.log(job1.id)
+            print("\n".join(stdout))
             api_instance.kill(job1.id)
             raise RuntimeError(
                 "Job did not finish in 60 seconds. is your Yarn queue full?"
@@ -64,8 +64,8 @@ def test_end_to_end(api_instance, kinit, upload_pi_file, livy_test_user_and_pass
         batch_id, state = api_instance.state(job1.id)
 
     # Make sure that the value of PI is in the output
-    batch_id, offset, total, logs = api_instance.logs(job1.id)
-    logstring = "\n".join(logs)
+    batch_id, offset, total, stdout, stderr = api_instance.log(job1.id)
+    logstring = "\n".join(stdout)
     # If the following test fails, then you'll need to run this:
     # hdfs dfs -mkdir /user/livy-submit-test
     # hdfs dfs -chown livy-submit-test:livy-submit-test /user/livy-submit-test

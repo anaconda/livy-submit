@@ -22,7 +22,7 @@ class Batch:
         )
 
     def __repr__(self):
-        return f"Batch(id={self.id}, appId={self.appId}, appInfo={self.appInfo}, log=[see self.log], state={self.state})"
+        return f"Batch(id={self.id}, appId='{self.appId}', appInfo={self.appInfo}, log='', state='{self.state}')"
 
 
 class LivyAPI:
@@ -181,7 +181,7 @@ class LivyAPI:
             if val is None or var == "self":
                 continue
             data[var] = val
-        print(data)
+#         print(data)
         # Submit the data dict to the Livy Batches API to create a batch job
         response = self._request("post", self._base_url, data=data)
         return Batch(**response)
@@ -196,6 +196,9 @@ class LivyAPI:
         consider calling this function multiple times and caching the lines locally
         or consider using the Spark History Server for more.
 
+        TODO: Submit bug report to Livy since both `starting_line` and `num_lines` appear
+        to be ignored in the Livy REST API
+        
         Parameters
         ----------
         batch_id: The job to get info for
@@ -216,7 +219,15 @@ class LivyAPI:
             data['size'] = num_lines
         url = "%s/%s/log" % (self._base_url, batch_id)
         response = self._request("get", url, data=data)
-        return (response["id"], response["from"], response["total"], response["log"])
+        
+        # Split the logs into stdout/stderr
+        logs = response['log']
+        stderr_idx = logs.index('\nstderr: ')
+        stdout_logs = logs[:stderr_idx]
+        stderr_logs = logs[stderr_idx:]
+        
+        return (response["id"], response["from"], response["total"], 
+                stdout_logs, stderr_logs)
 
     def kill(self, batchId: int):
         """

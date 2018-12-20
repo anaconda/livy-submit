@@ -21,6 +21,18 @@ def pi_file():
 
 
 @pytest.fixture(scope="session")
+def livy_submit_config_file():
+    cur_dir = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(cur_dir, "data", "livy-submit.json")
+
+
+@pytest.fixture(scope="session")
+def sparkmagic_config_file():
+    cur_dir = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(cur_dir, "data", "config.json")
+
+
+@pytest.fixture(scope="session")
 def livy_test_user_and_password():
     return "edill", "anaconda"
 
