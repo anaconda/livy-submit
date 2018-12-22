@@ -249,7 +249,6 @@ def _livy_submit_func(
 
     # upload file to hdfs
     hdfs_file_path = hdfs_api.upload(namenode_url=namenode_url, local_file=file)
-    hdfs_file_path = "hdfs://%s" % hdfs_file_path
     # upload archives to hdfs
     hdfs_dirname = dirname(hdfs_file_path)
     if archives is not None:

@@ -129,6 +129,16 @@ def test_cli(submitted_job, finished_job, capsys, base_cmd):
     assert submitted_job.id in err, "The submitted job should be in the output"
     assert finished_job.id in err, "The finished job should be in the output"
 
+    
+def test_info_func(submitted_job, capsys, base_cmd):
+    cmd = f"{base_cmd} info {submitted_job.id}"
+    with sysargv(cmd):
+        cli.cli()
+    
+    out, err = capsys.readouterr()
+    
+    assert str(submitted_job.id) in err, "The submitted job ID should appear in the output"
+        
 
 @pytest.fixture()
 def config_missing_kernel(sparkmagic_config_file, tmpdir):

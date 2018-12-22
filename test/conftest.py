@@ -26,6 +26,17 @@ def livy_submit_config_file():
     return os.path.join(cur_dir, "data", "livy-submit.json")
 
 
+@pytest.fixture(scope='session')
+def pi_runner_archive(tmpdir):
+    cur_dir = os.path.dirname(os.path.abspath(__file__))
+    pi_runner_file = os.path.join(cur_dir, "data", "pi_runner.py")
+    zip_file_path = join(tmpdir, 'pi_runner.zip')
+    with zipfile.ZipFile(zip_file_path, 'w') as zf:
+        zf.write(pi_runner_file)
+    
+    return zip_file_path
+    
+
 @pytest.fixture(scope="session")
 def sparkmagic_config_file():
     cur_dir = os.path.dirname(os.path.abspath(__file__))
