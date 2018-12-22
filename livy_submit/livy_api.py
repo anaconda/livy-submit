@@ -181,7 +181,7 @@ class LivyAPI:
             if val is None or var == "self":
                 continue
             data[var] = val
-#         print(data)
+        #         print(data)
         # Submit the data dict to the Livy Batches API to create a batch job
         response = self._request("post", self._base_url, data=data)
         return Batch(**response)
@@ -214,20 +214,25 @@ class LivyAPI:
         """
         data = {}
         if starting_line is not None:
-            data['from'] = starting_line
+            data["from"] = starting_line
         if num_lines is not None:
-            data['size'] = num_lines
+            data["size"] = num_lines
         url = "%s/%s/log" % (self._base_url, batch_id)
         response = self._request("get", url, data=data)
-        
+
         # Split the logs into stdout/stderr
-        logs = response['log']
-        stderr_idx = logs.index('\nstderr: ')
+        logs = response["log"]
+        stderr_idx = logs.index("\nstderr: ")
         stdout_logs = logs[:stderr_idx]
         stderr_logs = logs[stderr_idx:]
-        
-        return (response["id"], response["from"], response["total"], 
-                stdout_logs, stderr_logs)
+
+        return (
+            response["id"],
+            response["from"],
+            response["total"],
+            stdout_logs,
+            stderr_logs,
+        )
 
     def kill(self, batchId: int):
         """

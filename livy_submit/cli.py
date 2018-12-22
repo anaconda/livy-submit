@@ -25,7 +25,7 @@ def _init_logger(loglevel):
         logger.removeHandler(handler)
     logger.setLevel(loglevel)
     format_string = ""
-#     format_string = "%(asctime)-15s %(levelname)s: %(message)s"
+    #     format_string = "%(asctime)-15s %(levelname)s: %(message)s"
     formatter = logging.Formatter(fmt=format_string)
     stream_handler = logging.StreamHandler()
     stream_handler.setLevel(loglevel)
@@ -108,7 +108,9 @@ def _base_parser():
     ArgumentParser
     """
     ap = ArgumentParser(
-        prog="livy-submit", description="CLI for interacting with the Livy REST API", add_help=False
+        prog="livy-submit",
+        description="CLI for interacting with the Livy REST API",
+        add_help=False,
     )
     ap.add_argument(
         "--sparkmagic-config",
@@ -129,13 +131,17 @@ def _base_parser():
     ap.add_argument(
         "--namenode-url",
         action="store",
-        help=("The url of the namenode. Should include protocol " "(http/https) and port (50070)"),
+        help=(
+            "The url of the namenode. Should include protocol "
+            "(http/https) and port (50070)"
+        ),
     )
     ap.add_argument(
         "--livy-url",
         action="store",
         help=(
-            "The url of the Livy server. Should include protocol " "(http/https) and port (8998)"
+            "The url of the Livy server. Should include protocol "
+            "(http/https) and port (8998)"
         ),
     )
     ap.add_argument(
@@ -177,7 +183,7 @@ def _livy_info_func(livy_url, batchId=None, state=None, **kwargs):
     $ livy info --batchId 42 --state
     """
     api_instance = livy_api.LivyAPI(server_url=livy_url)
-    
+
     if batchId is not None:
         if state:
             # When you type this at the command line: `livy info {batchId} --state`
@@ -199,7 +205,9 @@ def _livy_info_parser(subparsers) -> ArgumentParser:
     """
     Configure the `livy info` subparser
     """
-    ap = subparsers.add_parser("info", help="Parser for getting info on an active Livy job")
+    ap = subparsers.add_parser(
+        "info", help="Parser for getting info on an active Livy job"
+    )
     ap.set_defaults(func=_livy_info_func)
     ap.add_argument(
         "--state",
@@ -311,7 +319,7 @@ def _livy_submit_parser(subparsers):
     )
     ap.add_argument(
         "--driver-memory",
-        dest='driverMemory',
+        dest="driverMemory",
         action="store",
         help=(
             "e.g. 512m, 2g. Amount of memory to use for the driver process, i.e. "
@@ -322,7 +330,7 @@ def _livy_submit_parser(subparsers):
     )
     ap.add_argument(
         "--driver-cores",
-        dest='driverCores',
+        dest="driverCores",
         action="store",
         type=int,
         help=(
@@ -332,7 +340,7 @@ def _livy_submit_parser(subparsers):
     )
     ap.add_argument(
         "--executor-memory",
-        dest='executorMemory',
+        dest="executorMemory",
         action="store",
         help=(
             "e.g. 512m, 2g. Amount of memory to use per executor process, in "
@@ -342,7 +350,7 @@ def _livy_submit_parser(subparsers):
     )
     ap.add_argument(
         "--executor-cores",
-        dest='executorCores',
+        dest="executorCores",
         action="store",
         type=int,
         help=(
@@ -352,12 +360,14 @@ def _livy_submit_parser(subparsers):
     )
     ap.add_argument(
         "--num-executors",
-        dest='numExecutors',
+        dest="numExecutors",
         action="store",
         type=int,
         help=("Number of executors to launch for this session"),
     )
-    ap.add_argument("--queue", action="store", help="The YARN queue that your job should run in")
+    ap.add_argument(
+        "--queue", action="store", help="The YARN queue that your job should run in"
+    )
     ap.add_argument(
         "--args",
         action="store",
@@ -397,28 +407,28 @@ def _livy_log_func(livy_url: str, batchId: int, follow: bool, **kwargs):
     """
     Implement the `log` and `log -f` functionality
     """
-    print('value of follow: %s' % follow)
+    print("value of follow: %s" % follow)
     api_instance = livy_api.LivyAPI(server_url=livy_url)
 
     # Get the current logs. We need to do this in either case
     if not follow:
         _, offset, num, stdout, stderr = api_instance.log(batchId)
-        logger.info('stdout logs')
-        logger.info('\n'.join(stdout))
-        logger.info('stderr logs')
-        logger.info('\n'.join(stderr))
+        logger.info("stdout logs")
+        logger.info("\n".join(stdout))
+        logger.info("stderr logs")
+        logger.info("\n".join(stderr))
 
         # Early exit if we are just looking for the logs once
         return
-    
+
     # Start by showing all available logs
     prev_num = 0
     # Give a fake state so we go through the loop at least once
-    state = 'starting'
+    state = "starting"
     total_new_lines = 0
     total_lines = 0
     known_lines = set()
-    while state in ('running', 'starting'):
+    while state in ("running", "starting"):
         _, state = api_instance.state(batchId)
         _, offset, num, stdout, stderr = api_instance.log(batchId)
 
@@ -432,10 +442,10 @@ def _livy_log_func(livy_url: str, batchId: int, follow: bool, **kwargs):
 
         # Delay a little bit so we're not hammering the Livy server
         time.sleep(1)
-        
-    logger.debug('total lines received from Livy API: %s' % total_lines)
-    logger.debug('total lines logged: %s' % len(known_lines))
-    logger.debug('number of log lines from the API: %s' % num)
+
+    logger.debug("total lines received from Livy API: %s" % total_lines)
+    logger.debug("total lines logged: %s" % len(known_lines))
+    logger.debug("number of log lines from the API: %s" % num)
 
 
 def _livy_log_parser(subparsers):
@@ -452,11 +462,14 @@ def _livy_log_parser(subparsers):
     ap.set_defaults(func=_livy_log_func)
     ap.add_argument("batchId", help="The Livy batch ID that you want to terminate")
     ap.add_argument(
-        "-f", "--follow",
+        "-f",
+        "--follow",
         default=False,
         action="store_true",
-        help=("Regularly poll Livy, fetch the most recent log lines and "
-              "print them to the terminal")
+        help=(
+            "Regularly poll Livy, fetch the most recent log lines and "
+            "print them to the terminal"
+        ),
     )
 
 
