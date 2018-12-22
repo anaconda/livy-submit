@@ -82,7 +82,7 @@ def test_end_to_end(api_instance, kinit, upload_pi_file, livy_test_user_and_pass
 
     print(logstring)
 
-    assert "Pi is roughly 3.14" in logstring
+    assert "Pi is roughly 3.1" in logstring
 
     print(logstring)
 

@@ -24,8 +24,8 @@ def _init_logger(loglevel):
     for handler in logger.handlers:
         logger.removeHandler(handler)
     logger.setLevel(loglevel)
-    format_string = "%(asctime)-15s %(levelname)s: %(message)s"
     format_string = ""
+#     format_string = "%(asctime)-15s %(levelname)s: %(message)s"
     formatter = logging.Formatter(fmt=format_string)
     stream_handler = logging.StreamHandler()
     stream_handler.setLevel(loglevel)
@@ -177,18 +177,21 @@ def _livy_info_func(livy_url, batchId=None, state=None, **kwargs):
     $ livy info --batchId 42 --state
     """
     api_instance = livy_api.LivyAPI(server_url=livy_url)
+    
     if batchId is not None:
         if state:
+            # When you type this at the command line: `livy info {batchId} --state`
             _, resp = api_instance.state(batchId)
-#             resp = eval(resp)
         else:
+            # When you type this at the command line: `livy info {batchId}`
             resp = api_instance.info(batchId)
     else:
+        # When you type this at the command line: `livy info`
         _, _, resp = api_instance.all_info(batchId)
         if state:
+            # When you type this at the command line: `livy info --state`
             resp = {id: batch.state for id, batch in resp.items()}
 
-#     logger.info(pformat(resp))
     logger.info(resp)
 
 
@@ -414,26 +417,24 @@ def _livy_log_func(livy_url: str, batchId: int, follow: bool, **kwargs):
     state = 'starting'
     total_new_lines = 0
     total_lines = 0
+    known_lines = set()
     while state in ('running', 'starting'):
         _, state = api_instance.state(batchId)
-#         _, offset, num, stdout, stderr = api_instance.log(batchId, starting_line=total_lines)
         _, offset, num, stdout, stderr = api_instance.log(batchId)
 
         total_lines += num
 
-        # How many new lines are there?
-        new_lines = num - prev_num
-        total_new_lines += new_lines
-        if new_lines > 0:
-            logger.info('\n'.join(stdout[-new_lines:]))
+        # This is inefficient, but it's also really really easy
+        for line in stdout:
+            if line not in known_lines:
+                known_lines.add(line)
+                logger.info(line)
 
-        # Store the state for the next loop iteration
-        prev_num = num
         # Delay a little bit so we're not hammering the Livy server
         time.sleep(1)
         
     logger.debug('total lines received from Livy API: %s' % total_lines)
-    logger.debug('total lines logged: %s' % total_new_lines)
+    logger.debug('total lines logged: %s' % len(known_lines))
     logger.debug('number of log lines from the API: %s' % num)
 
 
@@ -515,9 +516,7 @@ def cli():
         if k not in cfg:
             cfg[k] = v
         else:
-            if isinstance(v, (tuple, list)):
-                cfg[k] += v
-            elif isinstance(v, dict):
+            if isinstance(v, dict):
                 cfg[k].update(v)
             else:
                 cfg[k] = v
