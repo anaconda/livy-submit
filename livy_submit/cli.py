@@ -236,10 +236,12 @@ def _livy_submit_func(
     numExecutors: int = None,
     archives: List[str] = None,
     queue: str = None,
-    conf: List[str] = None,
+    conf: Dict = None,
     args: List[str] = None,
+    pyFiles: List[str] = None,
     **kwargs
 ):
+    conf.update({'spark.logConf': True})
     logger.debug("conf:\n%s", pformat(conf))
 
     if args is not None:
@@ -254,11 +256,29 @@ def _livy_submit_func(
     if archives is not None:
         hdfs_archives = []
         for archive in archives:
+            symlink = None
+            try:
+                archive, symlink = archive.split('#')
+            except:
+                logger.debug("No symlink component found in %s" % archive)
+                pass
             archive_path = hdfs_api.upload(
                 namenode_url=namenode_url, local_file=archive, hdfs_dir=hdfs_dirname
             )
+            if symlink:
+                # Use the Spark/Yarn-specific way to create symlinks, if the user is specifying one
+                archive_path = '%s#%s' % (archive_path, symlink)
             hdfs_archives.append("hdfs://%s" % archive_path)
         archives = hdfs_archives
+        
+    if pyFiles is not None:
+        hdfs_pyfiles = []
+        for pyfile in pyFiles:
+            pyfile_path = hdfs_api.upload(
+                namenode_url=namenode_url, local_file=pyfile, hdfs_dir=hdfs_dirname
+            )
+            hdfs_pyfiles.append("hdfs://%s" % pyfile_path)
+        pyFiles = hdfs_pyfiles
     # format args to pass to the livy submit API
     submit_args = {
         "name": name,
@@ -272,6 +292,7 @@ def _livy_submit_func(
         "queue": queue,
         "conf": conf,
         "args": args,
+        "pyFiles": pyFiles,
     }
     # submit livy job
     api_instance = livy_api.LivyAPI(server_url=livy_url)
@@ -375,6 +396,25 @@ def _livy_submit_parser(subparsers):
             "main is expecting command line args, use this variable to pass "
             "them in as space delimited. Will use shlex to split args"
         ),
+    )
+    ap.add_argument(
+        "--py-files",
+        dest="pyFiles",
+        action="append",
+        help=(
+            "Python files to be used in this session. Parameter can be used multiple "
+            "times to provide multiple archives. Same deal as the `file` parameter. "
+            "These archives will be uploaded to HDFS."
+        ),
+    )
+    ap.add_argument(
+        '--conf',
+        action='append',
+        help=(
+            "Additional Spark/Yarn/PySpark configuration properties. Parameter can be "
+            "used multiple times to provide multiple parameters. Values should take the "
+            "form of --conf spark.property=value"
+        )
     )
 
 
@@ -505,6 +545,12 @@ def cli():
 
     # Convert args Namespace object into a dictionary for easier manipulation
     args_dict = {k: v for k, v in vars(args).items() if v is not None}
+    cli_conf_dict = {}
+    for cli_conf in args_dict.pop('conf', []):
+        k, v = cli_conf.split('=', maxsplit=1)
+        cli_conf_dict[k] = v
+#     cli_conf = {k: v for _ in args_dict.pop('conf', []) for k, v in _.split('=', maxsplit=1)}
+    
 
     # Trim args we've already used
     del args_dict["verbose"]
@@ -536,6 +582,8 @@ def cli():
     logger.debug("config after adding livy_submit_config:\n%s", pformat(cfg))
     cfg.update(args_dict)
     logger.debug("config after adding CLI args:\n%s", pformat(cfg))
+    
+    cfg.get('conf', {}).update(cli_conf_dict)
 
     # Do the kinit before we run the subcommand
     # TODO: Implement this after we finalize the AE 5.2.3 secrets syntax

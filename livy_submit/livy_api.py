@@ -121,6 +121,7 @@ class LivyAPI:
         queue: str = None,
         conf: Dict = None,
         args: List[str] = None,
+        pyFiles: List[str] = None,
     ) -> Batch:
         """
         Submit a batch job to the Livy server
@@ -163,6 +164,9 @@ class LivyAPI:
         args : list of strings
             Extra command line args for the application. If your python main is expecting
             command line args, use this variable to pass them in.
+        pyFiles: list of strings
+            Python files to be used in this session. Same deal as the `file` parameter.
+            These archives need to be already uploaded to HDFS.
 
         Returns
         -------
