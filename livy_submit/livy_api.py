@@ -81,7 +81,7 @@ class LivyAPI:
         info = {batch["id"]: Batch(**batch) for batch in response["sessions"]}
         return response["from"], response["total"], info
 
-    def info(self, batch_id: int) -> Dict:
+    def info(self, batch_id: int) -> Batch:
         """Returns the batch session information.
 
         Handles: GET /batches/{batchId}
@@ -202,7 +202,7 @@ class LivyAPI:
 
         TODO: Submit bug report to Livy since both `starting_line` and `num_lines` appear
         to be ignored in the Livy REST API
-        
+
         Parameters
         ----------
         batch_id: The job to get info for
