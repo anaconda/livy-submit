@@ -10,6 +10,47 @@ CLI for submitting batch spark jobs to livy. Think spark-submit
 
 ## Usage
 
+### Configuration
+livy-submit is designed to pick up some global configuration from config files. This is so the users of livy-submit do not need to know all of the intimate details of where different services are running, or to let a platform administrator configure some of the Spark settings once for all of the platform users to use. There is nothing that is set in any of these config files that cannot be overridden on the command line by the user at runtime. The config from the sparkmagic config file (default: `~/.sparkmagic/config.json`) is the lowest priority, followed by the config from the livy submit config file (default: `~/.livy-submit.json`), with the arguments passed in on the command line taking the highest priority.
+
+#### configuration from the sparkmagic config json file
+Since you may already have `sparkmagic` installed, livy-submit can read information from that config file. livy-submit will, by default, look for a file in the location: `~/.sparkmagic/config.json`. You can also control this behavior by passing the path to your config file in at the command line: `livy --sparkmagic-config /path/to/config.json`. If livy-submit finds a sparkmagic config file at the location specified by default or by the user then it will attempt to pull the following values out:
+
+1. Livy server URL
+2. Livy server Port
+3. Default spark parameters
+
+The Livy server URL and Port will be pulled from the key `kernel_python_credentials` inside of the sparkmagic config.json file and the Default spark parameters will be pulled from the key `session_configs`. Have a look at the `~/.sparkmagic/config.json` file that is likely inside of your AE5 editor session if you're using the Hadoop-Spark template. While your config will likely be a little different, you should find these two keys present there:
+
+```
+{
+  "kernel_python_credentials" : {
+    "url": "http://ip-172-31-20-241.ec2.internal:8998",
+    "auth": "Kerberos"
+  },
+
+  ...,
+  
+  "session_configs": {
+    "driverMemory": "1000M",
+    "executorCores": 2
+  },
+```
+
+#### configuration from the livy-submit config json file
+Your platform admin may have configured a livy-submit config file for you to use. If the platform admin has configured that file to be mounted inside of your container at `~/.livy-submit.json` then livy-submit will automatically pick it up and load parameters out of it. If the platform admin has place the file somewhere else inside of your container, or if you have a config file that you'd like to use inside of your AE5 project, then you have a few options. You can set the (verbosely named) environmental variable, `LIVY_SUBMIT_CONFIG=/path/to/config.json`, or you can provide the information at the command line, `livy --livy-submit-config /path/to/config.json`. If you don't to manually set the environmental variable or add this flag at the command line, then you also have the option of hard-coding this in your anaconda-project.yml file:
+
+```yaml
+variables:
+  LIVY_SUBMIT_CONFIG:
+    description: Location of config file for livy submit
+    default: /opt/continuum/project/livy-submit.json
+```
+
+Regarding which parameters can be set inside of the config file, any parameter for any of the execution functions hanging off of `livy` can be set. These execution functions are `livy info`, `livy submit`, `livy kill` and `livy log`. For `livy info` you can set 
+
+To explain this a little more, consider the following 
+
 ### `livy submit`
 
 The main entry point for this code is `livy submit` which lets you execute PySpark files in batch mode. The main flag that you will care about when executing PySpark code is `--file`, which should contain the main entry point into your PySpark job. You must also provide a name for your spark job via the `--name` flag. That looks like this:

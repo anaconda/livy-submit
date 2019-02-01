@@ -12,8 +12,10 @@ import logging
 import time
 
 
+CONFIG_PATH_ENV_VAR = 'LIVY_SUBMIT_CONFIG'
+DEFAULT_SPARKMAGIC_CONFIG_PATH = "~/.sparkmagic/config.json"
+DEFAULT_LIVY_SUBMIT_CONFIG_PATH = "~/.livy-submit.json"
 logger = None
-
 
 def _init_logger(loglevel):
     # set up the logger
@@ -86,12 +88,23 @@ def _livy_submit_config(config_path: str) -> Dict:
         conf
         args
     """
-    if not os.path.exists(config_path):
-        logger.error("%s not found. Cannot load livy submit defaults", config_path)
+    options = (('cli', config_path), ('env var', os.environ.get(CONFIG_PATH_ENV_VAR)))
+    path_to_use = None
+    for location, path in options:
+        if os.path.exists(path):
+            logger.debug('using config set by %s found at %s' % (location, path))
+            path_to_use = path
+            break
+        else:
+            logger.debug('config from %s not found at %s' % (location, path))
+            
+    if not path_to_use:
+        logger.error("No config file found at any specified paths. Cannot load "
+                     "defaults for livy submit. Run with -v for more config info")
         return {}
-    with open(config_path, "r") as f:
+    
+    with open(path_to_use, "r") as f:
         return json.loads(f.read())
-
 
 def _base_parser():
     """Configure the base parser that the other subcommands will inherit from
@@ -115,7 +128,7 @@ def _base_parser():
     ap.add_argument(
         "--sparkmagic-config",
         action="store",
-        default=expanduser("~/.sparkmagic/config.json"),
+        default=expanduser(DEFAULT_SPARKMAGIC_CONFIG_PATH),
         help=(
             "The location of the sparkmagic configuration file. "
             "Will extract the Livy url/port and the spark defaults "
@@ -125,7 +138,7 @@ def _base_parser():
     ap.add_argument(
         "--livy-submit-config",
         action="store",
-        default=expanduser("~/.livy-submit.json"),
+        default=expanduser(DEFAULT_LIVY_SUBMIT_CONFIG_PATH),
         help="The location of the livy submit configuration file",
     )
     ap.add_argument(
@@ -462,7 +475,8 @@ def _livy_log_func(livy_url: str, batchId: int, follow: bool, **kwargs):
 
     # Start by showing all available logs
     prev_num = 0
-    # Give a fake state so we go through the loop at least once
+    # Give a fake state so we go through the loop at least once. 
+    # Really, I want a do-while loop, but Python doesn't have that paradigm
     state = "starting"
     total_new_lines = 0
     total_lines = 0
