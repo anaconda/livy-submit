@@ -88,7 +88,10 @@ def _livy_submit_config(config_path: str) -> Dict:
         conf
         args
     """
-    options = (('cli', config_path), ('env var', os.environ.get(CONFIG_PATH_ENV_VAR)))
+    options = [('cli', config_path)]
+    env_path = os.environ.get(CONFIG_PATH_ENV_VAR)
+    if env_path is not None:
+        options.append(('env var', env_path))
     path_to_use = None
     for location, path in options:
         if os.path.exists(path):
@@ -97,12 +100,12 @@ def _livy_submit_config(config_path: str) -> Dict:
             break
         else:
             logger.debug('config from %s not found at %s' % (location, path))
-            
+
     if not path_to_use:
         logger.error("No config file found at any specified paths. Cannot load "
                      "defaults for livy submit. Run with -v for more config info")
         return {}
-    
+
     with open(path_to_use, "r") as f:
         return json.loads(f.read())
 
@@ -254,6 +257,8 @@ def _livy_submit_func(
     pyFiles: List[str] = None,
     **kwargs
 ):
+    if conf is None:
+        conf = {}
     conf.update({'spark.logConf': True})
     logger.debug("conf:\n%s", pformat(conf))
 
@@ -269,6 +274,7 @@ def _livy_submit_func(
     if archives is not None:
         hdfs_archives = []
         for archive in archives:
+            # I'm not 100% sure this symlinking actually works...
             symlink = None
             try:
                 archive, symlink = archive.split('#')
@@ -283,7 +289,7 @@ def _livy_submit_func(
                 archive_path = '%s#%s' % (archive_path, symlink)
             hdfs_archives.append("hdfs://%s" % archive_path)
         archives = hdfs_archives
-        
+
     if pyFiles is not None:
         hdfs_pyfiles = []
         for pyfile in pyFiles:
@@ -475,7 +481,7 @@ def _livy_log_func(livy_url: str, batchId: int, follow: bool, **kwargs):
 
     # Start by showing all available logs
     prev_num = 0
-    # Give a fake state so we go through the loop at least once. 
+    # Give a fake state so we go through the loop at least once.
     # Really, I want a do-while loop, but Python doesn't have that paradigm
     state = "starting"
     total_new_lines = 0
@@ -564,7 +570,7 @@ def cli():
         k, v = cli_conf.split('=', maxsplit=1)
         cli_conf_dict[k] = v
 #     cli_conf = {k: v for _ in args_dict.pop('conf', []) for k, v in _.split('=', maxsplit=1)}
-    
+
 
     # Trim args we've already used
     del args_dict["verbose"]
@@ -596,7 +602,7 @@ def cli():
     logger.debug("config after adding livy_submit_config:\n%s", pformat(cfg))
     cfg.update(args_dict)
     logger.debug("config after adding CLI args:\n%s", pformat(cfg))
-    
+
     cfg.get('conf', {}).update(cli_conf_dict)
 
     # Do the kinit before we run the subcommand
