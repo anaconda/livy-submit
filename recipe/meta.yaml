@@ -1,5 +1,5 @@
 {% set name = "livy-submit" %}
-{% set version = "0.5.0" %}
+{% set version = "0.5.2" %}
 
 package:
   name: {{ name|lower }}
@@ -7,7 +7,7 @@ package:
 
 source:
   git_url: ../
-#  git_tag: 0.5.0
+  git_tag: {{ version }}
 
 build:
   number: 1
@@ -23,12 +23,17 @@ requirements:
   run:
     - python
     - python-hdfs
+    - pexpect
     - requests-kerberos
     - requests
 
 test:
   imports:
     - livy_submit
+    - livy_submit.cli
+    - livy_submit.hdfs_api
+    - livy_submit.krb
+    - livy_submit.livy_api
   commands:
     - livy submit -h
     - livy info -h
