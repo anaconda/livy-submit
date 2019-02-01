@@ -1,0 +1,43 @@
+{% set name = "livy-submit" %}
+{% set version = "0.5.0" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  git_url: ../
+#  git_tag: 0.5.0
+
+build:
+  number: 1
+  version: {{ GIT_DESCRIBE_TAG }}
+  script: "{{ PYTHON }} -m pip install . --no-deps -vv"
+  entry_points:
+    - livy = livy_submit.cli:cli
+
+requirements:
+  host:
+    - python
+    - pip
+  run:
+    - python
+    - python-hdfs
+    - requests-kerberos
+    - requests
+
+test:
+  imports:
+    - livy_submit
+  commands:
+    - livy submit -h
+    - livy info -h
+    - livy kill -h
+    - livy log -h
+
+about:
+  home: http://github.com/anaconda-platform/livy-submit
+  license: MIT
+  license_family: MIT
+  #license_file: LICENSE.txt
+  summary: CLI for submitting batch spark jobs to livy. Think spark-submit
