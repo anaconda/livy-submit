@@ -1,11 +1,11 @@
 import requests
 import json
 import requests_kerberos
-from typing import List, Dict, Tuple
+from typing import List, Tuple
 
 
 class Batch:
-    def __init__(self, id: str, appId: str, appInfo: Dict, log: List, state: str):
+    def __init__(self, id: str, appId: str, appInfo: dict, log: List, state: str):
         self.id = id
         self.appId = appId
         self.appInfo = appInfo
@@ -27,7 +27,7 @@ class Batch:
 
 class LivyAPI:
     def __init__(
-        self, server_url: str, use_tls: bool = False, headers: Dict = None, auth=None
+        self, server_url: str, use_tls: bool = False, headers: dict = None, auth=None
     ):
         """
         Parameters
@@ -119,7 +119,7 @@ class LivyAPI:
         numExecutors: int = None,
         archives: List[str] = None,
         queue: str = None,
-        conf: Dict = None,
+        conf: dict = None,
         args: List[str] = None,
         pyFiles: List[str] = None,
     ) -> Batch:
@@ -158,9 +158,9 @@ class LivyAPI:
             The YARN queue that your job should run in
         conf : dict
             Additonal spark configuration properties. Any valid variable listed in the
-            spark configuration for your version of spark. See all here:
+            spark configuration for your version of spark. See all here
             https://spark.apache.org/docs/latest/configuration.html
-            e.g.: {'spark.pyspark.python': '/opt/anaconda3/bin/python'}
+            e.g. {'spark.pyspark.python': '/opt/anaconda3/bin/python'}
         args : list of strings
             Extra command line args for the application. If your python main is expecting
             command line args, use this variable to pass them in.
@@ -250,7 +250,7 @@ class LivyAPI:
         response = self._request("delete", url)
         return response
 
-    def _request(self, rest_action: str, url: str, data: Dict = None) -> Dict:
+    def _request(self, rest_action: str, url: str, data: dict = None) -> dict:
         """
         Helper function to handle some boilerplate get requests to the Livy server
 
@@ -274,7 +274,7 @@ class LivyAPI:
         # Convert the REST payload into JSON.
         json_data = json.dumps(data)
         # Find the right function to call, 'get', 'post', or 'delete'
-        func = getattr(requests, rest_action)
+        func = getattr(requests, rest_action.lower())
         # interact with Livy
         resp = func(url, auth=self._auth, data=json_data, headers=self._headers)
         # Make sure that our request was successful

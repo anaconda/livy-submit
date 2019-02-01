@@ -32,10 +32,10 @@ def delete(hdfs_dir: str, namenode_url: str):
 
 def get_kerberos_user() -> str:
     """Get the kerberos user from klist -e.
-    
+
     svc_user/my.hostname.com@MY.DOMAIN.COM -> svc_user
     svc_user@MY.DOMAIN.COM -> svc_user
-    
+
     """
     unix_cmd = (
         'klist -e | grep Default | cut -d " " -f 3 | cut -d "@" -f 1 | cut -d "/" -f 1'
@@ -49,8 +49,8 @@ def upload(local_file: str, namenode_url: str, hdfs_dir: str = None) -> str:
     ----------
     local_file: The local file to upload
     namenode_url: The url of the namenode. Should include protocol (http/https) and port
-    hdfs_dir: (optional) The directory in which to place `local_file`. If not provided, an hdfs 
-        directory will be generated: 
+    hdfs_dir: (optional) The directory in which to place `local_file`. If not provided, an hdfs
+        directory will be generated:
         /user/{hdfs_user}/livy-submit-files/{first six chars of uuid4}_{current time in seconds}'
 
     Returns
