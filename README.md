@@ -1,6 +1,13 @@
 # livy-submit
 CLI for submitting batch spark jobs to livy. Think spark-submit
 
+Docs on internal Anaconda Confluence
+
+1. General documentation found [here](https://anaconda.atlassian.net/wiki/spaces/ProductMarketing/pages/132612097/Livy+submit+documentation)
+2. Example of wrapping a REST API around livy-submit and using it on AE5 found [here](https://anaconda.atlassian.net/wiki/spaces/ProductMarketing/pages/124059651/AE5+REST+API+deployment+using+livy-submit+for+batch+job+submission)
+
+# Old docs that are basically fully folded in to the Confluence docs:
+
 ## Network requirements
 
 1. Your client must be able to see the livy server
@@ -30,7 +37,7 @@ The Livy server URL and Port will be pulled from the key `kernel_python_credenti
   },
 
   ...,
-  
+
   "session_configs": {
     "driverMemory": "1000M",
     "executorCores": 2
@@ -47,9 +54,9 @@ variables:
     default: /opt/continuum/project/livy-submit.json
 ```
 
-Regarding which parameters can be set inside of the config file, any parameter for any of the execution functions hanging off of `livy` can be set. These execution functions are `livy info`, `livy submit`, `livy kill` and `livy log`. For `livy info` you can set 
+Regarding which parameters can be set inside of the config file, any parameter for any of the execution functions hanging off of `livy` can be set. These execution functions are `livy info`, `livy submit`, `livy kill` and `livy log`. For `livy info` you can set
 
-To explain this a little more, consider the following 
+To explain this a little more, consider the following
 
 ### `livy submit`
 
@@ -59,7 +66,7 @@ The main entry point for this code is `livy submit` which lets you execute PySpa
 livy submit --name my-spark-job --file pi.py
 ```
 
-You can add supporting files to this with the `--archives` flag. `--archives` can be used multiple times to add multiple archives. These archives can probably be any format, but I'd stick with zip files. These zip files will be extracted into your YARN container working directory so you can reference them via local paths in your code. 
+You can add supporting files to this with the `--archives` flag. `--archives` can be used multiple times to add multiple archives. These archives can probably be any format, but I'd stick with zip files. These zip files will be extracted into your YARN container working directory so you can reference them via local paths in your code.
 
 ```
 livy submit --name my-spark-job --file pi.py --archives supporting-archive.zip --archives supporting-archive2.zip
