@@ -182,6 +182,14 @@ def _base_parser():
         action="store_true",
         help="logging defaults to info. Switch to warn with -q/--quiet",
     )
+    ap.add_argument(
+        '-k',
+        '--ignore-ssl-errors',
+        action='store_false',
+        default=True,
+        dest='verify',
+        help="Turns off SSL verification (it's on by default)."
+    )
     return ap
 
 
@@ -202,7 +210,7 @@ def _livy_info_func(livy_url, batchId=None, state=None, **kwargs):
     # Return the state of job #42
     $ livy info --batchId 42 --state
     """
-    api_instance = livy_api.LivyAPI(server_url=livy_url)
+    api_instance = livy_api.LivyAPI(server_url=livy_url, verify=verify)
 
     if batchId is not None:
         if state:
@@ -318,7 +326,7 @@ def _livy_submit_func(
         "pyFiles": pyFiles,
     }
     # submit livy job
-    api_instance = livy_api.LivyAPI(server_url=livy_url)
+    api_instance = livy_api.LivyAPI(server_url=livy_url, verify=verify)
     batch = api_instance.submit(**submit_args)
 
     # Log livy job into to the console
@@ -445,7 +453,7 @@ def _livy_kill_func(livy_url: str, batchId: int, **kwargs):
     """
     Terminate a Livy job and delete its state from the Livy server
     """
-    api_instance = livy_api.LivyAPI(server_url=livy_url)
+    api_instance = livy_api.LivyAPI(server_url=livy_url, verify=verify)
     resp = api_instance.kill(batchId)
     logger.info("Job killed:\n%s", pformat(resp))
 
@@ -470,7 +478,7 @@ def _livy_log_func(livy_url: str, batchId: int, follow: bool, **kwargs):
     Implement the `log` and `log -f` functionality
     """
     print("value of follow: %s" % follow)
-    api_instance = livy_api.LivyAPI(server_url=livy_url)
+    api_instance = livy_api.LivyAPI(server_url=livy_url, verify=verify)
 
     # Get the current logs. We need to do this in either case
     if not follow:
