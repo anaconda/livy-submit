@@ -12,10 +12,11 @@ import logging
 import time
 
 
-CONFIG_PATH_ENV_VAR = 'LIVY_SUBMIT_CONFIG'
+CONFIG_PATH_ENV_VAR = "LIVY_SUBMIT_CONFIG"
 DEFAULT_SPARKMAGIC_CONFIG_PATH = "~/.sparkmagic/config.json"
 DEFAULT_LIVY_SUBMIT_CONFIG_PATH = "~/.livy-submit.json"
 logger = None
+
 
 def _init_logger(loglevel):
     # set up the logger
@@ -88,26 +89,29 @@ def _livy_submit_config(config_path: str) -> Dict:
         conf
         args
     """
-    options = [('cli', config_path)]
+    options = [("cli", config_path)]
     env_path = os.environ.get(CONFIG_PATH_ENV_VAR)
     if env_path is not None:
-        options.append(('env var', env_path))
+        options.append(("env var", env_path))
     path_to_use = None
     for location, path in options:
         if os.path.exists(path):
-            logger.debug('using config set by %s found at %s' % (location, path))
+            logger.debug("using config set by %s found at %s" % (location, path))
             path_to_use = path
             break
         else:
-            logger.debug('config from %s not found at %s' % (location, path))
+            logger.debug("config from %s not found at %s" % (location, path))
 
     if not path_to_use:
-        logger.error("No config file found at any specified paths. Cannot load "
-                     "defaults for livy submit. Run with -v for more config info")
+        logger.error(
+            "No config file found at any specified paths. Cannot load "
+            "defaults for livy submit. Run with -v for more config info"
+        )
         return {}
 
     with open(path_to_use, "r") as f:
         return json.loads(f.read())
+
 
 def _base_parser():
     """Configure the base parser that the other subcommands will inherit from
@@ -259,7 +263,7 @@ def _livy_submit_func(
 ):
     if conf is None:
         conf = {}
-    conf.update({'spark.logConf': True})
+    conf.update({"spark.logConf": True})
     logger.debug("conf:\n%s", pformat(conf))
 
     if args is not None:
@@ -277,7 +281,7 @@ def _livy_submit_func(
             # I'm not 100% sure this symlinking actually works...
             symlink = None
             try:
-                archive, symlink = archive.split('#')
+                archive, symlink = archive.split("#")
             except:
                 logger.debug("No symlink component found in %s" % archive)
                 pass
@@ -286,7 +290,7 @@ def _livy_submit_func(
             )
             if symlink:
                 # Use the Spark/Yarn-specific way to create symlinks, if the user is specifying one
-                archive_path = '%s#%s' % (archive_path, symlink)
+                archive_path = "%s#%s" % (archive_path, symlink)
             hdfs_archives.append("hdfs://%s" % archive_path)
         archives = hdfs_archives
 
@@ -427,13 +431,13 @@ def _livy_submit_parser(subparsers):
         ),
     )
     ap.add_argument(
-        '--conf',
-        action='append',
+        "--conf",
+        action="append",
         help=(
             "Additional Spark/Yarn/PySpark configuration properties. Parameter can be "
             "used multiple times to provide multiple parameters. Values should take the "
             "form of --conf spark.property=value"
-        )
+        ),
     )
 
 
@@ -566,11 +570,10 @@ def cli():
     # Convert args Namespace object into a dictionary for easier manipulation
     args_dict = {k: v for k, v in vars(args).items() if v is not None}
     cli_conf_dict = {}
-    for cli_conf in args_dict.pop('conf', []):
-        k, v = cli_conf.split('=', maxsplit=1)
+    for cli_conf in args_dict.pop("conf", []):
+        k, v = cli_conf.split("=", maxsplit=1)
         cli_conf_dict[k] = v
-#     cli_conf = {k: v for _ in args_dict.pop('conf', []) for k, v in _.split('=', maxsplit=1)}
-
+    #     cli_conf = {k: v for _ in args_dict.pop('conf', []) for k, v in _.split('=', maxsplit=1)}
 
     # Trim args we've already used
     del args_dict["verbose"]
@@ -603,7 +606,7 @@ def cli():
     cfg.update(args_dict)
     logger.debug("config after adding CLI args:\n%s", pformat(cfg))
 
-    cfg.get('conf', {}).update(cli_conf_dict)
+    cfg.get("conf", {}).update(cli_conf_dict)
 
     # Do the kinit before we run the subcommand
     # TODO: Implement this after we finalize the AE 5.2.3 secrets syntax

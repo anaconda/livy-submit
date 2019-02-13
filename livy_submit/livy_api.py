@@ -27,7 +27,12 @@ class Batch:
 
 class LivyAPI:
     def __init__(
-        self, server_url: str, use_tls: bool = False, headers: dict = None, auth=None
+        self,
+        server_url: str,
+        use_tls: bool = False,
+        headers: dict = None,
+        auth=None,
+        verify: bool = True,
     ):
         """
         Parameters
@@ -35,7 +40,10 @@ class LivyAPI:
         server_url: The URL of the livy server. Should include protocol (http/https) and port
         headers, optional: A dictionary for the API request to Livy.
         auth, optional: An object for `requests` to use in its `auth` keyword.
+        verify, optional: (True) Use TLS / SSL. (False) Ignore TLS / SSL errors
         """
+        self._verify = verify
+
         if auth is None:
             auth = requests_kerberos.HTTPKerberosAuth(
                 mutual_authentication=requests_kerberos.REQUIRED, force_preemptive=True
@@ -276,7 +284,13 @@ class LivyAPI:
         # Find the right function to call, 'get', 'post', or 'delete'
         func = getattr(requests, rest_action.lower())
         # interact with Livy
-        resp = func(url, auth=self._auth, data=json_data, headers=self._headers)
+        resp = func(
+            url,
+            auth=self._auth,
+            data=json_data,
+            headers=self._headers,
+            verify=self._verify,
+        )
         # Make sure that our request was successful
         resp.raise_for_status()
         return resp.json()
