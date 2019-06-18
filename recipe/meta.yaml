@@ -1,31 +1,30 @@
-{% set name = "livy-submit" %}
-{% set version = "0.5.3" %}
+{% set data = load_setup_py_data() %}
 
 package:
-  name: {{ name|lower }}
-  version: {{ version }}
+  name: livy-submit
+  version: {{ data.get('version') }}
 
 source:
-  git_url: ../
-  git_tag: {{ version }}
+  path: ../
 
 build:
-  number: 1
-  version: {{ GIT_DESCRIBE_TAG }}
-  script: "{{ PYTHON }} -m pip install . --no-deps -vv"
+  number: 0
+  noarch: python
+  script:
+    - {{ PYTHON }} -m pip install . --no-deps -vv
   entry_points:
     - livy = livy_submit.cli:cli
 
 requirements:
   host:
-    - python
+    - python >=3.6
     - pip
   run:
-    - python
-    - python-hdfs
+    - python >=3.6
     - pexpect
-    - requests-kerberos
+    - python-hdfs
     - requests
+    - requests-kerberos
 
 test:
   imports:
@@ -41,8 +40,7 @@ test:
     - livy log -h
 
 about:
-  home: http://github.com/anaconda-platform/livy-submit
-  license: MIT
-  license_family: MIT
-  #license_file: LICENSE.txt
-  summary: CLI for submitting batch spark jobs to livy. Think spark-submit
+  home: https://github.com/Anaconda-Platform/livy-submit
+  license: BSD 3-Clause
+  license_file: LICENSE
+  summary: 'CLI for submitting batch spark jobs to livy. Think spark-submit'
