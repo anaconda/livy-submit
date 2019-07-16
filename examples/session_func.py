@@ -1,8 +1,9 @@
-from livy_submit import LivySession, pyspark, krb
+from livy_submit import LivySession, krb
 import numpy as np
+from pprint import pprint
 
 krb.kinit_username('instructor', 'anaconda')
-session = LivySession('http://livy.training.anaconda.com:8998', name='Test2')
+pyspark = LivySession('http://livy.training.anaconda.com:8998')
 
 def pi(n=int(1e3)):
     prod = 1.0
@@ -18,7 +19,7 @@ def pi_np(n=int(1e4)):
     z = 2.0 * y.prod()
     return z
 
-@pyspark(session)
+@pyspark
 def func(a, n):
     ## This step is not strictly necessary as
     ## the decorator ensures that spark is loaded,
@@ -26,15 +27,18 @@ def func(a, n):
     from pyspark.sql import SparkSession
     spark = SparkSession.builder.enableHiveSupport().getOrCreate()
 
+    # python on the spark master
     x = [{'a':'1', 'b':2}, {'c':pi(), 'd':pi_np(n)}]
     arr = np.array([1, 2, a])
 
+    # hive tables
     table = spark.table('autompg')
-    df = table.groupby('origin').mean('mpg').toPandas()
-    return x, arr, df
+    hdf = table.groupby('origin').mean('mpg').toPandas()
 
-result = func(4, n=int(1e4))
-print(result)
+    return x, arr, hdf
+
+result = func(4, int(1e4))
+pprint(result)
 
 
-print(session.delete())
+pyspark.stop()

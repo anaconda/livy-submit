@@ -12,6 +12,7 @@ def _unpickle(result):
     final = cloudpickle.loads(step2)
     return final
 
+
 class LivyException(RuntimeError):
     pass
 
@@ -22,23 +23,8 @@ class LivySessionNotFound(LivyException):
     pass
 
 
-class pyspark(object):
-    def __init__(self, session):
-        self.session = session
-
-    def __call__(self, func):
-        def _(*args, **kwargs):
-            def _f(spark):
-                return func(*args, **kwargs)
-
-            result, _ = self.session.submit(_f, run=False)
-            return result
-
-        return _
-
-
 class LivySession(object):
-    def __init__(self, host, name=None, session_id=None, wait=False):
+    def __init__(self, host, name=None, conf=None, session_id=None, wait=False):
         self.host = host
         self.auth = HTTPKerberosAuth()
         self.name = name
@@ -48,6 +34,7 @@ class LivySession(object):
             self.session_id = session_id
             print(f'Connecting to session {self.session_id}')
         else:
+            # TODO: pickup conf argument
             data = {
                 'conf': {
                     "spark.pyspark.python": "/opt/anaconda3/bin/python",
@@ -102,7 +89,7 @@ class LivySession(object):
         r = requests.get(self.session_url, headers=self.headers, auth=self.auth)
         return r.json()
 
-    def submit(self, job, kind='pyspark', run=True):
+    def _submit(self, job, kind='pyspark', run=True):
         _ = self._wait(self.session_url, 'idle')
 
         pickled_job = cloudpickle.dumps(job)
@@ -143,6 +130,16 @@ class LivySession(object):
 
         return result, error
 
+    def __call__(self, func):
+        def _(*args, **kwargs):
+            def _f(spark):
+                return func(*args, **kwargs)
+
+            result, _ = self._submit(_f, run=False)
+            return result
+
+        return _
+
     def execute(self, code, kind='pyspark'):
         _ = self._wait(self.session_url, 'idle')
 
@@ -159,14 +156,13 @@ class LivySession(object):
         return r.json()
 
 
-    def delete(self):
+    def stop(self):
         try:
             _ = self._wait(self.session_url, 'idle')
         except LivySessionNotFound:
             return 404
 
 
-        r = requests.delete(self.session_url,
+        _ = requests.delete(self.session_url,
                             headers=self.headers,
                             auth=self.auth)
-        return r.status_code
