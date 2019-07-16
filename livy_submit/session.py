@@ -140,6 +140,12 @@ class LivySession(object):
 
         return _
 
+    def __enter__(self):
+        return self
+    
+    def __exit__(self, value, type, traceback):
+        self.stop()
+
     def execute(self, code, kind='pyspark'):
         _ = self._wait(self.session_url, 'idle')
 
@@ -160,8 +166,7 @@ class LivySession(object):
         try:
             _ = self._wait(self.session_url, 'idle')
         except LivySessionNotFound:
-            return 404
-
+            return
 
         _ = requests.delete(self.session_url,
                             headers=self.headers,

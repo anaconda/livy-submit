@@ -3,7 +3,6 @@ import numpy as np
 from pprint import pprint
 
 krb.kinit_username('instructor', 'anaconda')
-pyspark = LivySession('http://livy.training.anaconda.com:8998')
 
 def pi(n=int(1e3)):
     prod = 1.0
@@ -19,26 +18,25 @@ def pi_np(n=int(1e4)):
     z = 2.0 * y.prod()
     return z
 
-@pyspark
-def func(a, n):
-    ## This step is not strictly necessary as
-    ## the decorator ensures that spark is loaded,
-    ## but is considered best practice.
-    from pyspark.sql import SparkSession
-    spark = SparkSession.builder.enableHiveSupport().getOrCreate()
+with LivySession('http://livy.training.anaconda.com:8998') as pyspark:
+    @pyspark
+    def func(a, n):
+        ## This step is not strictly necessary as
+        ## the decorator ensures that spark is loaded,
+        ## but is considered best practice.
+        from pyspark.sql import SparkSession
+        spark = SparkSession.builder.enableHiveSupport().getOrCreate()
 
-    # python on the spark master
-    x = [{'a':'1', 'b':2}, {'c':pi(), 'd':pi_np(n)}]
-    arr = np.array([1, 2, a])
+        # python on the spark master
+        x = [{'a':'1', 'b':2}, {'c':pi(), 'd':pi_np(n)}]
+        arr = np.array([1, 2, a])
 
-    # hive tables
-    table = spark.table('autompg')
-    hdf = table.groupby('origin').mean('mpg').toPandas()
+        # hive tables
+        table = spark.table('autompg')
+        hdf = table.groupby('origin').mean('mpg').toPandas()
 
-    return x, arr, hdf
+        return x, arr, hdf
 
-result = func(4, int(1e4))
+    result = func(4, int(1e4))
+
 pprint(result)
-
-
-pyspark.stop()
