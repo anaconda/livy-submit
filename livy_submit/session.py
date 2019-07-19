@@ -35,12 +35,15 @@ class LivySession(object):
             print(f'Connecting to session {self.session_id}')
         else:
             # TODO: pickup conf argument
-            data = {
-                'conf': {
-                    "spark.pyspark.python": "/opt/anaconda3/bin/python",
-                },
-                "executorMemory": "1000M", "executorCores": 4, "numExecutors": 1
-            }
+            if conf:
+                data = conf
+            else:
+                data = {
+                    'conf': {
+                        "spark.pyspark.python": "/opt/anaconda3/bin/python",
+                    },
+                    "executorMemory": "1000M", "executorCores": 4, "numExecutors": 1
+                }
 
             if self.name:
                 data['name'] = self.name
@@ -142,7 +145,7 @@ class LivySession(object):
 
     def __enter__(self):
         return self
-    
+
     def __exit__(self, value, type, traceback):
         self.stop()
 
@@ -168,6 +171,8 @@ class LivySession(object):
         except LivySessionNotFound:
             return
 
-        _ = requests.delete(self.session_url,
-                            headers=self.headers,
-                            auth=self.auth)
+        res = requests.delete(self.session_url,
+                              headers=self.headers,
+                              auth=self.auth)
+        if res.ok:
+            print(f'stopped {self.session_url}')
