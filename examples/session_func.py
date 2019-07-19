@@ -24,6 +24,8 @@ with LivySession('http://livy.training.anaconda.com:8998') as pyspark:
         ## This step is not strictly necessary as
         ## the decorator ensures that spark is loaded,
         ## but is considered best practice.
+        import pyspark
+        return(pyspark.__version__)
         from pyspark.sql import SparkSession
         spark = SparkSession.builder.enableHiveSupport().getOrCreate()
 
