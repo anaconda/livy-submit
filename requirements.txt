@@ -1,3 +1,4 @@
 python-hdfs
 requests
 requests-kerberos
+pexpect
