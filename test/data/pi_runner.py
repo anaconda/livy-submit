@@ -13,5 +13,5 @@ def run(spark, partitions):
     count = (
         spark.sparkContext.parallelize(range(1, n + 1), partitions).map(f).reduce(add)
     )
-    
+
     return (4.0 * count / n)

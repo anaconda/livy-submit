@@ -17,8 +17,8 @@ build:
     - livy = livy_submit.cli:cli
 
 requirements:
-  host:
-    - python
+  build:
+    - python {{ python }}
     - pip
   run:
     - python
