@@ -603,7 +603,7 @@ def cli():
     logger.debug("config after adding sparkmagic_config:\n%s", pformat(cfg))
     for k, v in livy_submit_config.items():
         if k not in cfg:
-            cfg[k] = v
+            cfg[k] = vz
         else:
             if isinstance(v, dict):
                 cfg[k].update(v)
