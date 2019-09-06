@@ -311,10 +311,10 @@ def _livy_submit_func(
 
         if res.scheme.lower() in ('hdfs', 's3'):
             # We don't need to do anything here. Yarn will handle this properly
-            hdfs_archives.append('conda_env')
+            hdfs_archives.append(conda_env)
         elif res.scheme == '':
             # this is a local path so we need to upload it, but we can reuse the archives handling code below
-            archives.append(res)
+            archives.append(conda_env)
         else:
             err_msg = ("Your conda env arg is: %s\n"
                        "livy-submit works with hdfs, s3 or local file systems.\n"
