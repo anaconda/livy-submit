@@ -297,13 +297,12 @@ def _livy_submit_func(
             archives = []
         res = urlparse(conda_env)
         path = res.path
-        if '#' in path:
-            path, symlink = path.split('#')
+        symlink = path.fragment
+        pythonroot = os.path.basename(path)
+        if symlink:
             # the user has included a symlink. Yarn will unpack the archive to this path
             # inside of their yarn container
             pythonroot = symlink
-        else:
-            pythonroot = os.path.basename(path)
         # spark.pyspark.driver.python defaults to spark.pyspark.python
         pythonpath = './%s/bin/python' % pythonroot
         conf['spark.pyspark.python'] = pythonpath
