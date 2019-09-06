@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+from urllib.parse import urlparse
 from os.path import expanduser, dirname
 from typing import Dict, List
 from . import livy_api, hdfs_api
@@ -252,6 +253,9 @@ def _livy_info_parser(subparsers) -> ArgumentParser:
     )
 
 
+def _parse_conda_env(conda_env_arg):
+
+
 def _livy_submit_func(
     livy_url: str,
     namenode_url: str,
@@ -263,6 +267,7 @@ def _livy_submit_func(
     executorCores: int = None,
     numExecutors: int = None,
     archives: List[str] = None,
+    conda_env: str = None,
     queue: str = None,
     conf: Dict = None,
     args: List[str] = None,
@@ -272,10 +277,11 @@ def _livy_submit_func(
     if conf is None:
         conf = {}
     conf.update({"spark.logConf": True})
-    logger.debug("conf:\n%s", pformat(conf))
-
     if args is not None:
         args = shlex.split(args)
+
+    if archives is None:
+        archives = []
 
     logger.debug("Value of args parameter:\n%s", pformat(args))
 
@@ -283,11 +289,60 @@ def _livy_submit_func(
     hdfs_file_path = hdfs_api.upload(namenode_url=namenode_url, local_file=file)
     # upload archives to hdfs
     hdfs_dirname = dirname(hdfs_file_path)
+
+    hdfs_archives = []
+
+    if conda_env is not None:
+        # There's enough special case handling here that it's worth keeping this conda_env code separate from the
+        # generic archives uploading
+        if archives is None:
+            archives = []
+        res = urlparse(conda_env)
+        path = res.path
+        if '#' in path:
+            path, symlink = path.split('#')
+            # the user has included a symlink. Yarn will unpack the archive to this path
+            # inside of their yarn container
+            pythonroot = symlink
+        else:
+            pythonroot = os.path.basename(path)
+        # spark.pyspark.driver.python defaults to spark.pyspark.python
+        pythonpath = './%s/bin/python' % pythonroot
+        conf['spark.pyspark.python'] = pythonpath
+        conf['spark.yarn.appMasterEnv.PYSPARK_PYTHON'] = pythonpath
+
+        if res.scheme.lower() in ('hdfs', 's3'):
+            # We don't need to do anything here. Yarn will handle this properly
+            hdfs_archives.append('conda_env')
+        elif res.scheme == '':
+            # this is a local path so we need to upload it, but we can reuse the archives handling code below
+            archives.append(res)
+        else:
+            err_msg = ("Your conda env arg is: %s\n"
+                       "livy-submit works with hdfs, s3 or local file systems.\n"
+                       "Using urlparse, it was determined that your env is at the following scheme: %s" %
+                       (conda_env, res.scheme))
+            raise RuntimeError(err_msg)
+
+    # Upload all local archives to HDFS
     if archives is not None:
-        hdfs_archives = []
         for archive in archives:
-            # I'm not 100% sure this symlinking actually works...
+            res = urlparse(archive)
+            if res.scheme.lower() in ('hdfs', 's3'):
+                # We don't need to do anything else here. Yarn will handle this properly
+                hdfs_archives.append('conda_env')
+                continue
+            elif res.scheme != '':
+                err_msg = ("Your conda env arg is: %s\n"
+                           "livy-submit works with hdfs, s3 or local file systems.\n"
+                           "Using urlparse, it was determined that your env is at the following scheme: %s" %
+                           (archive, res.scheme))
+                raise RuntimeError(err_msg)
+
+            # Now we know the archive is local and we need to upload it to hdfs. But first we need to figure out
+            # if the user has given us a Hadoop symlinking syntax, i.e., '/home/edill/foo.tar.gz#CONDA'
             symlink = None
+
             try:
                 archive, symlink = archive.split("#")
             except:
@@ -302,6 +357,7 @@ def _livy_submit_func(
             hdfs_archives.append("hdfs://%s" % archive_path)
         archives = hdfs_archives
 
+
     if pyFiles is not None:
         hdfs_pyfiles = []
         for pyfile in pyFiles:
@@ -310,6 +366,10 @@ def _livy_submit_func(
             )
             hdfs_pyfiles.append("hdfs://%s" % pyfile_path)
         pyFiles = hdfs_pyfiles
+
+    # Show the final conf
+    logger.debug("conf:\n%s", pformat(conf))
+
     # format args to pass to the livy submit API
     submit_args = {
         "name": name,
@@ -358,6 +418,12 @@ def _livy_submit_parser(subparsers):
             "path on HDFS so it will be accessible from your Spark "
             "driver and executors"
         ),
+    )
+    ap.add_argument(
+        '--conda-env',
+        help=("A conda environment archived with conda-pack to be used in this session. Functionally equivalent"
+              "to adding it as an archive and setting some yarn / spark parameters. TODO: Note specifically"
+              "what parameters are going to be set")
     )
     ap.add_argument(
         "--archives",
