@@ -253,8 +253,6 @@ def _livy_info_parser(subparsers) -> ArgumentParser:
     )
 
 
-def _parse_conda_env(conda_env_arg):
-
 
 def _livy_submit_func(
     livy_url: str,
