@@ -297,8 +297,9 @@ def _livy_submit_func(
             archives = []
         res = urlparse(conda_env)
         path = res.path
-        symlink = path.fragment
         pythonroot = os.path.basename(path)
+        # See if we have a symlink here. It'll be in the "fragment" portion of the urlparse result
+        symlink = res.fragment
         if symlink:
             # the user has included a symlink. Yarn will unpack the archive to this path
             # inside of their yarn container
