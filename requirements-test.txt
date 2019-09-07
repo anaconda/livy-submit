@@ -1,2 +1,6 @@
 pytest
 coverage
+# So we can do some debugging in a notebook
+ipykernel
+# So we can install in dev mode
+pip

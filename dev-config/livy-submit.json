@@ -1,0 +1,8 @@
+{
+    "namenode_url": "http://ec2-3-93-61-21.compute-1.amazonaws.com:50070",
+    "livy_url": "http://livy.demo.anaconda.com:8998",
+    "driver_memory": "4g",
+    "driver_cores": 2,
+    "executor_memory": "2g",
+    "executor_cores": 1
+}
