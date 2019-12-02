@@ -185,6 +185,7 @@ class LivyAPI:
              'appId': None,
              'appInfo': {'driverLogUrl': None, 'sparkUiUrl': None},
              'log': ['stdout: ', '\nstderr: ', '\nYARN Diagnostics: ']}
+             
         """
         # Get a dictionary of all of the non-None values that are passed in
         local_items = locals()

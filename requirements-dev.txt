@@ -4,3 +4,8 @@ coverage
 ipykernel
 # So we can install in dev mode
 pip
+
+# for docs
+sphinx
+sphinxcontrib-napoleon
+recommonmark
