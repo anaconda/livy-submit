@@ -35,7 +35,8 @@ release = '0.5.4'
 # ones.
 extensions = [
     'sphinx.ext.napoleon',
-    'recommonmark'
+    'recommonmark',
+    'sphinx.ext.autosectionlabel',
 ]
 
 source_suffix = {
