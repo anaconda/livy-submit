@@ -44,6 +44,11 @@ livy-submit --conda-env hdfs:///user/edill/example.tar.gz \
 
 ## Creating the conda environment
 
+Your PySpark scripts may need additional dependencies above and beyond what PySpark provides out of the box.
+If this is the case, then you'll need to distribute a conda environment to the nodes of your Hadoop cluster.
+There are, generally speaking, two ways to accomplish this: (1) Pull at runtime from HDFS/s3 or (2) Pre-deploy to all compute nodes via parcel, mpack or some other approach (e.g., ansible).
+Each of these approaches has 
+
 ## Using with Anaconda Enterprise 5
 
 1. Add the livy-submit package to your anaconda-project.yml

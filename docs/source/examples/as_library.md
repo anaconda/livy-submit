@@ -1,4 +1,4 @@
-# Use Livy as a Python Library
+# Use livy-submit as a Python Library
 
 livy-submit is both a CLI tool and a Python library. 
 The CLI piece makes use of the Python API so all functionality that is exposed by the CLI is also available inside of a Jupyter notebook or a Python file (or another Python library if you wish to build on top of livy submit). 

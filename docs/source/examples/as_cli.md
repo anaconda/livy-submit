@@ -1,4 +1,4 @@
-# as_cli
+# Use livy-submit as a cli
 
 Let's say you have an existing PySpark script that does some data reduction you need as part of a data pipeline.
 Maybe you've ssh'd in to one of your Hadoop edge nodes and have set this script up via crontab. 

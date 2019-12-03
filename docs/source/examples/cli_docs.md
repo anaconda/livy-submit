@@ -1,4 +1,4 @@
-# Use Livy as a CLI tool
+# Use livy-submit as a CLI tool
 
 If you have placed a livy submit configuration file in the expected location `~/.livy-submit.json` then you will be able to execute livy from the command line after you have installed it into your AE project. 
 `livy` has four subcommands: `info`, `submit`, `kill` and `log`.
