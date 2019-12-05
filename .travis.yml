@@ -27,7 +27,7 @@ install:
 
 script: 
   - set -e
-  - conda install --file requirements-dev.txt --file requirements.txt --file requirements-doc.txt
+  - conda install --file requirements-dev.txt --file requirements.txt --file requirements-docs.txt
   - pushd docs
   - make docs
 
