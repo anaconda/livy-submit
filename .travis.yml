@@ -29,7 +29,7 @@ install:
 script: 
   - set -e
   - conda install --file requirements-dev.txt --file requirements.txt --file requirements-docs.txt -c conda-forge
-  - source activate base && pushd docs && make html
+  - conda activate base && pushd docs && make html
 
 after_success:
   - doctr deploy
