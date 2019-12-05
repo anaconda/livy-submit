@@ -5,6 +5,13 @@ To enable this functionality, we require WebHDFS or HttpFS to be (1) enabled on 
 A description of webhdfs and httpfs can be found [here from Cloudera](https://community.cloudera.com/t5/Community-Articles/Comparison-of-HttpFs-and-WebHDFS/ta-p/245562).
 
 
+## livy-submit usage patterns
+
+* [Using livy-submit from the command line](examples/as_cli)
+* [livy-submit CLI docs](examples/cli_docs)
+* [Using livy-submit as a library](examples/as_library)
+* [Using livy-submit inside a REST API](examples/as_rest_api)
+
 ## Brief intro by usage demonstration
 
 livy-submit is a command line analog of spark-submit, focused on the Python / R use cases.
@@ -107,12 +114,6 @@ These environment specs can be in environment.yaml, construct.yaml or even anaco
     * As a user, add it to your project and set `LIVY_SUBMIT_CONFIG` to point to the file in your anaconda-project.yml file
 3. Invoke as CLI or use as library
 
-## livy-submit usage patterns
-
-* [Using livy-submit from the command line](examples/as_cli)
-* [livy-submit CLI docs](examples/cli_docs)
-* [Using livy-submit as a library](examples/as_library)
-* [Using livy-submit inside a REST API](examples/as_rest_api)
 
 ## livy-submit configuration parameters
 
