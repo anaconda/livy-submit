@@ -1,5 +1,5 @@
 # livy-submit
-[![Build Status](https://travis-ci.org/Anaconda-Platform/livy-submit.svg?branch=master)](https://travis-ci.org/Anaconda-Platform/livy-submit)
+[![Build Status](https://travis-ci.com/Anaconda-Platform/livy-submit.svg?branch=master)](https://travis-ci.com/Anaconda-Platform/livy-submit)
 
 General documentation found [here](https://anaconda-platform.github.io/livy-submit/). Example usage patterns can be found [here](https://anaconda-platform.github.io/livy-submit/#livy-submit-usage-patterns)
 
