@@ -8,6 +8,29 @@ Docs on internal Anaconda Confluence
 
 # Old docs that are basically fully folded in to the Confluence docs:
 
+## Build docs
+
+1. Create conda environment:
+
+```
+conda create -n livy-submit-dev --file requrements-dev.txt --file requirements.txt
+```
+
+2. Build apidoc files (`conda activate livy-submit-dev`, first)
+
+```
+sphinx-apidoc -f -o docs/source livy_submit
+```
+
+3. Build docs
+
+```
+cd docs
+make html
+```
+
+4. View docs by opening docs/build/index.html in a web browser
+
 ## Network requirements
 
 1. Your client must be able to see the livy server

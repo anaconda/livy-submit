@@ -4,3 +4,4 @@ coverage
 ipykernel
 # So we can install in dev mode
 pip
+

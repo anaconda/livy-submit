@@ -1,0 +1,34 @@
+language: python
+python:
+  - 3.6
+sudo: false
+
+env:
+  global:
+    # Doctr deploy key for Anaconda-Platform/livy-submit
+    - secure: "2kfD2AR2nRB4SfngD318Abovw6S57WqzP75nUWQstO+0fXPsOJ+LG8N4YgNPxmnnXgymxg1BjH/fzJK5u6OJO5iGJ+6xtokNdJIWMltdxRfJtav4cYw9lBxyC93voSpv+mNpa2yGcUeepSvmta7NcDn/vzc5Oeq4Ib63Recc9gyKvoKmtdMO0yAxvGyIcrdRVuyIxqo9a166/Mk9zmHFocXL0uOedWZQ4/eA2qEkdmPI8ZFa3g2WmdTymPzEA0cgpDZ5ClfdyZ1Yij6mop4u7Mr+xOBn1oZVbulyTzjorZKlQuWCgIWLadzBWAVOzY80UPmeaXWPV9aIyB97arlhEK4ta2CiALsQmiLIscV7eVpXALSaPZdnc6NljayODncYKtpE/Vb2vKDsb/PNdo+7tFFEPGh/polXFKsXmxsXX/VKOX8TXLNetzAr7T/D/x2EnxQW+krKPZxZkSCw9Nao6qeM8Uwp+zH57drHLKFelwmsAbaCJbElhFV4MMTTIqQMQ1AJ1Nf4bjVb6kfU26t2D0UBf2CRXimMJm+B2uTk/iFnVZZzlMcKif6PDacPo3u9xMfrD98vxwdjk4t05GDB+ApGIMfPsfws9JjZZYn57ksI82DONiEt8m0rH+xY4K8lGDKdQ8HF/uCQhgBPtqLrJLoLezFl1CsRHjwvXZUu9dc="
+install:
+  - sudo apt-get update
+  - set -e
+  # from https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/use-conda-with-travis-ci.html#the-travis-yml-file
+  - curl -X GET https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -o mc.sh
+  - bash mc.sh -b -p $HOME/miniconda
+  - source "$HOME/miniconda/etc/profile.d/conda.sh"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+  # Useful for debugging any issues with conda
+  - conda info -a
+
+script: 
+  - set -e
+  - conda install --file requirements-dev.txt --file requirements.txt --file requirements-docs.txt -c conda-forge
+  - conda activate base && pushd docs && make html && popd
+
+after_success:
+  #- |
+  #  if [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_EVENT_TYPE" == "push" ]]; then
+  #    doctr deploy . --built-docs docs/build/html
+  #  fi
+  - doctr deploy . --built-docs docs/build/html
+

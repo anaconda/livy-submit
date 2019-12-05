@@ -1,11 +1,11 @@
 from setuptools import find_packages, setup
 import versioneer
 
-with open('requirements.txt') as fp:
-    install_requires = fp.read().splitlines()
+# with open('requirements.txt') as fp:
+#     install_requires = fp.read().splitlines()
 
-with open('requirements-test.txt') as fp:
-	test_require = fp.read().splitlines()
+# with open('requirements-dev.txt') as fp:
+# 	test_require = fp.read().splitlines()
 
 setup(
     version=versioneer.get_version(),
@@ -14,6 +14,7 @@ setup(
     packages=find_packages(),
     entry_points={"console_scripts": ["livy = livy_submit.cli:cli"]},
     python_requires=">=3.6",
-    install_requires=install_requires,
-    test_require=test_require
+    # Using conda to install everything
+    #install_requires=install_requires,
+    #test_require=test_require
 )

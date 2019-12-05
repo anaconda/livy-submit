@@ -1,0 +1,5 @@
+# for docs
+sphinx
+sphinxcontrib-napoleon
+recommonmark
+doctr
