@@ -32,4 +32,4 @@ script:
   - conda activate base && pushd docs && make html
 
 after_success:
-  - doctr deploy . --build-docs docs/build/html
+  - doctr deploy . --built-docs docs/build/html
