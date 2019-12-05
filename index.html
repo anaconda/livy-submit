@@ -1,0 +1,260 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Welcome to livy-submit’s documentation! &#8212; livy-submit 0.5.4 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Use livy-submit as a cli" href="examples/as_cli.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="welcome-to-livy-submit-s-documentation">
+<h1>Welcome to livy-submit’s documentation!<a class="headerlink" href="#welcome-to-livy-submit-s-documentation" title="Permalink to this headline">¶</a></h1>
+<p>Our intent with livy-submit is that it behaves similarly to spark-submit in “cluster” deploy mode.
+To enable this functionality, we require WebHDFS or HttpFS to be (1) enabled on the Hadoop cluster and (2) visible from wherever you are running livy-submit.
+A description of webhdfs and httpfs can be found <a class="reference external" href="https://community.cloudera.com/t5/Community-Articles/Comparison-of-HttpFs-and-WebHDFS/ta-p/245562">here from Cloudera</a>.</p>
+<div class="section" id="brief-intro-by-usage-demonstration">
+<h2>Brief intro by usage demonstration<a class="headerlink" href="#brief-intro-by-usage-demonstration" title="Permalink to this headline">¶</a></h2>
+<p>livy-submit is a command line analog of spark-submit, focused on the Python / R use cases.
+It requires an active Livy server to be functional.
+Let’s compare the command line invocation of spark-submit and livy-submit for the case where we want to run a Python script with the PySpark runtime being pulled from HDFS.
+Using spark-submit, the CLI looks like this:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>spark-submit --archives hdfs:///user/edill/example.tar.gz <span class="se">\</span>
+    --conf spark.pyspark.python<span class="o">=</span>./example.tar.gz/bin/python <span class="se">\</span>
+    --conf spark.yarn.appMasterEnv.PYSPARK_PYTHON<span class="o">=</span>./example.tar.gz/bin/python <span class="se">\</span>
+    --deploy-mode cluster <span class="se">\</span>
+    test.py
+</pre></div>
+</div>
+<p>Using livy-submit, the CLI looks like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">livy</span><span class="o">-</span><span class="n">submit</span> <span class="o">--</span><span class="n">archives</span> <span class="n">hdfs</span><span class="p">:</span><span class="o">///</span><span class="n">user</span><span class="o">/</span><span class="n">edill</span><span class="o">/</span><span class="n">example</span><span class="o">.</span><span class="n">tar</span><span class="o">.</span><span class="n">gz</span> \
+    <span class="o">--</span><span class="n">conf</span> <span class="n">spark</span><span class="o">.</span><span class="n">pyspark</span><span class="o">.</span><span class="n">python</span><span class="o">=./</span><span class="n">example</span><span class="o">.</span><span class="n">tar</span><span class="o">.</span><span class="n">gz</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">python</span> \
+    <span class="o">--</span><span class="n">conf</span> <span class="n">spark</span><span class="o">.</span><span class="n">yarn</span><span class="o">.</span><span class="n">appMasterEnv</span><span class="o">.</span><span class="n">PYSPARK_PYTHON</span><span class="o">=./</span><span class="n">example</span><span class="o">.</span><span class="n">tar</span><span class="o">.</span><span class="n">gz</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">python</span> \
+    <span class="o">--</span><span class="n">name</span> <span class="n">livy</span> <span class="n">submit</span> <span class="n">test</span> \
+    <span class="o">--</span><span class="n">file</span> <span class="n">test</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+<p>Note the only difference being the explicit <code class="docutils literal notranslate"><span class="pre">--file</span></code> parameter that livy-submit takes.
+These CLIs are otherwise identical.
+Now, since we are aiming livy-submit at the Python / R audience, it would make sense to simplify their use case when using conda environments.
+We’ve done that with livy-submit.
+We automatically set the spark.pyspark.python and the spark.yarn.appMasterEnv.PYSPARK_PYTHON env vars for you, if you use the <code class="docutils literal notranslate"><span class="pre">--conda-env</span></code> flag.
+This allows the user to have a much simpler invocation:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">livy</span><span class="o">-</span><span class="n">submit</span> <span class="o">--</span><span class="n">conda</span><span class="o">-</span><span class="n">env</span> <span class="n">hdfs</span><span class="p">:</span><span class="o">///</span><span class="n">user</span><span class="o">/</span><span class="n">edill</span><span class="o">/</span><span class="n">example</span><span class="o">.</span><span class="n">tar</span><span class="o">.</span><span class="n">gz</span> \
+    <span class="o">--</span><span class="n">name</span> <span class="n">livy</span> <span class="n">submit</span> <span class="n">test</span> \
+    <span class="o">--</span><span class="n">file</span> <span class="n">test</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="creating-the-conda-environment">
+<h2>Creating the conda environment<a class="headerlink" href="#creating-the-conda-environment" title="Permalink to this headline">¶</a></h2>
+<p>Your PySpark scripts may need additional dependencies above and beyond what PySpark provides out of the box.
+If this is the case, then you’ll need to distribute a conda environment to the nodes of your Hadoop cluster.
+There are, generally speaking, two ways to accomplish this: (1) Pull at runtime from HDFS/s3 or (2) Pre-deploy to all compute nodes via parcel, mpack or some other approach (e.g., ansible).
+Each of these approaches has different strengths and weaknesses, see the next heading, “Parcels vs HDFS env archives” below for more details.
+For this section, let’s manually create and upload a conda environment to HDFS via webhdfs.</p>
+<ol class="simple">
+<li><p>Create conda environment: <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">create</span> <span class="pre">-n</span> <span class="pre">my_env</span> <span class="pre">pandas</span> <span class="pre">scikit-learn</span> <span class="pre">conda-pack</span> <span class="pre">python-hdfs</span> <span class="pre">-c</span> <span class="pre">conda-forge</span></code></p></li>
+<li><p>Pack conda environment:</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">activate</span> <span class="n">my_env</span>
+<span class="n">conda</span> <span class="n">pack</span> <span class="o">-</span><span class="n">o</span> <span class="n">my_env</span><span class="o">.</span><span class="n">zip</span>
+</pre></div>
+</div>
+<ol class="simple">
+<li><p>Configure python-hdfs by writing <code class="docutils literal notranslate"><span class="pre">~/.hdfscli.cfg</span></code>, where you’ll need to configure the URL correctly to point to your namenode. The port is typically <code class="docutils literal notranslate"><span class="pre">50070</span></code></p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="k">global</span><span class="p">]</span>
+<span class="n">default</span><span class="o">.</span><span class="n">alias</span> <span class="o">=</span> <span class="n">dev</span>
+<span class="n">autoload</span><span class="o">.</span><span class="n">modules</span> <span class="o">=</span> <span class="n">hdfs</span><span class="o">.</span><span class="n">ext</span><span class="o">.</span><span class="n">kerberos</span>
+
+<span class="p">[</span><span class="n">dev</span><span class="o">.</span><span class="n">alias</span><span class="p">]</span>
+<span class="n">url</span> <span class="o">=</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">namenode</span><span class="p">:</span><span class="n">port</span>
+<span class="n">client</span> <span class="o">=</span> <span class="n">KerberosClient</span>
+</pre></div>
+</div>
+<ol class="simple">
+<li><p>Run python-hdfs to upload the archive to hdfs: <code class="docutils literal notranslate"><span class="pre">hdfscli</span> <span class="pre">upload</span> <span class="pre">-f</span> <span class="pre">my_env.zip</span> <span class="pre">hdfs:///user/edill/my_env.zip</span></code></p></li>
+<li><p>Use the conda environment that we just uploaded for your livy-submit <code class="docutils literal notranslate"><span class="pre">--conda-env</span></code> argument.</p></li>
+</ol>
+</div>
+<div class="section" id="parcels-vs-hdfs-env-archives">
+<h2>Parcels vs HDFS env archives<a class="headerlink" href="#parcels-vs-hdfs-env-archives" title="Permalink to this headline">¶</a></h2>
+<p>When considering how to manage conda environments on your Hadoop cluster you largely have a choice between two options: Parcels deployed to all Yarn NodeManager nodes or Conda environment archives stored on HDFS.
+You can definitely use both approaches, but there are definite drawbacks to each, depending on your perspective.
+From the <strong>IT/admin</strong> lens, parcels is your clear winner if you’re most interested in centralized control over what libraries your Spark users have access to.
+The main downside to Parcels is that you can only deploy a few of these environments before your nodes run out of disk space and your users will always need more environments then you’ll be able to deploy.
+Eventually you’ll hit a wall and have to start deciding which environments need to get removed so you can make room for new ones.
+These environments are typically between 500 MB and 3GB and each one takes up space on your compute nodes.
+Typically, these nodes only have 50-100GB of extra space on them as the rest is reserved for the system, Yarn’s temporary space and HDFS capacity.</p>
+<p>From the <strong>user</strong> lens, conda envs on HDFS is the clear winner because it gives the user complete control and complete flexibility.
+The primary downside is that the user is responsible for managing which environments are available on HDFS and coming up with some sort of naming / versioning scheme so that the problem of matching PySpark scripts and sparkmagic notebooks to these HDFS environments is tractable and not a slow descent into madness.</p>
+<p>The best outcome for everyone is joint ownership over the problem between IT/admin and the users by providing a git + CI + deployment solution so that the user manages the problem of “which dependencies do I need” and the admin manages the problem of “how do I get these dependencies to HDFS for the user”.
+The suggested solution here is to do the following:</p>
+<ol class="simple">
+<li><p>Manage conda environment specs in a single git repository.
+These environment specs can be in environment.yaml, construct.yaml or even anaconda-project.yml</p></li>
+<li><p>Set up a web hook such that any time a commit is pushed to this repository, things are built on your CI system of choice (e.g., Jenkins). This CI should do the following:</p>
+<ol class="simple">
+<li><p>Figure out which files have changed</p></li>
+<li><p>Build those environment specs</p></li>
+<li><p>Archive them so the user / admin can pull them down and manually QA them</p></li>
+<li><p>(optional) Figure out some sort of automated testing scheme to validate that the env will have what you need in it once it is deployed</p></li>
+<li><p>If the commit is a merge commit, push the archives from step #3 to some artifact repository</p></li>
+<li><p>Other notes:</p>
+<ul class="simple">
+<li><p>You’ll need to come up with a sensible versioning scheme.
+The construct.yaml spec has a “version” field which makes this a tractable problem.</p></li>
+<li><p>You may need to figure out how to handle Jupyter kernels if your users need that in these environments.</p></li>
+</ul>
+</li>
+</ol>
+</li>
+<li><p>Set up a hook from CI to push the environment to HDFS.</p></li>
+</ol>
+</div>
+<div class="section" id="using-with-anaconda-enterprise-5">
+<h2>Using with Anaconda Enterprise 5<a class="headerlink" href="#using-with-anaconda-enterprise-5" title="Permalink to this headline">¶</a></h2>
+<ol class="simple">
+<li><p>Add the livy-submit package to your anaconda-project.yml</p></li>
+<li><p>Add livy-submit.json to the platform, either:</p>
+<ul class="simple">
+<li><p>As an admin, add it to all containers at <code class="docutils literal notranslate"><span class="pre">~/.livy-submit.json</span></code> via <a class="reference external" href="https://enterprise-docs.anaconda.com/en/latest/admin/advanced/config-livy-server.html#configuring-project-access"><code class="docutils literal notranslate"><span class="pre">anaconda-enterprise-cli</span> <span class="pre">spark-config</span></code></a></p></li>
+<li><p>As a user, add it to your project and set <code class="docutils literal notranslate"><span class="pre">LIVY_SUBMIT_CONFIG</span></code> to point to the file in your anaconda-project.yml file</p></li>
+</ul>
+</li>
+<li><p>Invoke as CLI or use as library</p></li>
+</ol>
+</div>
+<div class="section" id="livy-submit-usage-patterns">
+<h2>livy-submit usage patterns<a class="headerlink" href="#livy-submit-usage-patterns" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="examples/as_cli.html">Using livy-submit from the command line</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/cli_docs.html">livy-submit CLI docs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/as_library.html">Using livy-submit as a library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/as_rest_api.html">Using livy-submit inside a REST API</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="livy-submit-configuration-parameters">
+<h2>livy-submit configuration parameters<a class="headerlink" href="#livy-submit-configuration-parameters" title="Permalink to this headline">¶</a></h2>
+<p>livy-submit will load sparkmagic configuration and livy-submit configuration.
+<strong>Sparkmagic</strong> configuration will be read from <code class="docutils literal notranslate"><span class="pre">~/.sparkmagic/config.json</span></code>.
+There is an open feature request to read the configuration from an environmental variable, just like sparkmagic itself does.
+If this is of interest to you, comment on <a class="reference external" href="https://github.com/Anaconda-Platform/livy-submit/issues/12">this issue</a></p>
+<p>From the sparkmagic configuration, livy-submit will attempt to find the <code class="docutils literal notranslate"><span class="pre">livy_url</span></code>, the <code class="docutils literal notranslate"><span class="pre">livy_port</span></code> and the <code class="docutils literal notranslate"><span class="pre">session_cfgs</span></code> which will contain some defaults that you or your admin set for interactive spark jobs.</p>
+<p>livy-submit configuration will be read from <code class="docutils literal notranslate"><span class="pre">~/.livy-submit.json</span></code>, the command line argument <code class="docutils literal notranslate"><span class="pre">--livy-submit-config</span></code>, or the environmental variable <code class="docutils literal notranslate"><span class="pre">LIVY_SUBMIT_CONFIG</span></code>, in that order, with <code class="docutils literal notranslate"><span class="pre">LIVY_SUBMIT_CONFIG</span></code> taking the highest precedence.</p>
+<p>Valid configuration options for livy-submit are <code class="docutils literal notranslate"><span class="pre">namenode_url</span></code>, <code class="docutils literal notranslate"><span class="pre">livy_url</span></code> any valid keyword argument for the CLI functions, <code class="docutils literal notranslate"><span class="pre">info</span></code>, <code class="docutils literal notranslate"><span class="pre">submit</span></code>, <code class="docutils literal notranslate"><span class="pre">kill</span></code>, and <code class="docutils literal notranslate"><span class="pre">log</span></code>.
+<code class="docutils literal notranslate"><span class="pre">namenode_url</span></code> and <code class="docutils literal notranslate"><span class="pre">livy_url</span></code> should be in the format <code class="docutils literal notranslate"><span class="pre">http[s]://{fqdn}:{port}</span></code></p>
+<p>To see valid options, explore the CLI for each of the functions by executing <code class="docutils literal notranslate"><span class="pre">livy</span> <span class="pre">info</span> <span class="pre">-h</span></code>, <code class="docutils literal notranslate"><span class="pre">livy</span> <span class="pre">submit</span> <span class="pre">-h</span></code>, <code class="docutils literal notranslate"><span class="pre">livy</span> <span class="pre">kill</span> <span class="pre">-h</span></code> or <code class="docutils literal notranslate"><span class="pre">livy</span> <span class="pre">log</span> <span class="pre">-h</span></code>.</p>
+</div>
+<div class="section" id="indices-and-tables">
+<h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="livy_submit.html">API docs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">module list</a></li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">livy-submit</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="examples/as_cli.html">Using livy-submit from the command line</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/cli_docs.html">livy-submit CLI docs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/as_library.html">Using livy-submit as a library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/as_rest_api.html">Using livy-submit inside a REST API</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="livy_submit.html">API docs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">module list</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="examples/as_cli.html" title="next chapter">Use livy-submit as a cli</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Anaconda.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/index.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

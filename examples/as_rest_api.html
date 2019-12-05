@@ -1,0 +1,211 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>livy-submit as REST API &#8212; livy-submit 0.5.4 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="livy_submit package" href="../livy_submit.html" />
+    <link rel="prev" title="Use livy-submit as a Python Library" href="as_library.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="livy-submit-as-rest-api">
+<h1>livy-submit as REST API<a class="headerlink" href="#livy-submit-as-rest-api" title="Permalink to this headline">¶</a></h1>
+<p>We can use livy-submit inside of a REST API by using the following libraries:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span> <span class="n">tranquilizer</span>
+<span class="o">-</span> <span class="n">livy</span><span class="o">-</span><span class="n">submit</span>
+</pre></div>
+</div>
+<p>We will need to do the following:</p>
+<ol class="simple">
+<li><p>Define url for namenode and livy server</p></li>
+<li><p>Define auth function that takes a username/password or a Kerberos keytab</p></li>
+<li><p>Define function we want to execute as the REST endpoint. The livy-submit call lives inside of this function</p></li>
+<li><p>Publish the REST endpoint using tranquilizer</p></li>
+</ol>
+<div class="section" id="define-url-for-namenode-and-livy-server">
+<h2>1. Define url for namenode and livy server<a class="headerlink" href="#define-url-for-namenode-and-livy-server" title="Permalink to this headline">¶</a></h2>
+<p>These are pretty straightforward.
+Ideally this info could be pulled from the default livy configuration path, but there’s no “load_config” function yet in livy-submit, so we will need to define it manually for now.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">namenode</span> <span class="o">=</span> <span class="s2">&quot;http://your.namenode.company.com:50070&quot;</span>
+<span class="n">livy</span> <span class="o">=</span> <span class="s2">&quot;http://your.livy.company.com:8998&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="define-auth-function">
+<h2>2. Define auth function<a class="headerlink" href="#define-auth-function" title="Permalink to this headline">¶</a></h2>
+<p>Let’s assume that you’ve got access to a keytab.
+If you’re using Anaconda Enterprise then you can upload a keytab to your project.
+Then you can use that keytab inside of this REST API deployment to get access to the Hadoop resources that you need.
+Then we need three things: keytab_path, keytab_principal and the kinit_keytab function:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">livy_submit</span> <span class="kn">import</span> <span class="n">kinit_keytab</span>
+<span class="c1"># Define the principal in the keytab and the path to the keytab that we&#39;ve uploaded</span>
+<span class="n">keytab_path</span> <span class="o">=</span> <span class="s1">&#39;/opt/continuum/project/livy-submit/rest-api/edill.keytab&#39;</span>
+<span class="n">keytab_principal</span> <span class="o">=</span> <span class="s1">&#39;user@DEMO.COM&#39;</span>
+<span class="c1"># Show that the kinit_keytab function works as expected</span>
+<span class="n">kinit_keytab</span><span class="p">(</span><span class="n">keytab_path</span><span class="p">,</span> <span class="n">keytab_principal</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If you prefer to use a username / pass to kinit, then follow the instructions in our <a class="reference external" href="https://enterprise-docs.anaconda.com/en/latest/data-science-workflows/user-settings.html?highlight=secret#storing-secrets">enterprise docs</a> to add your Kerberos username and password to Anaconda Enterprise.</p>
+<p>I would suggest that you name the secret “KRB_CREDS” and put your username and password in one per line.
+Then you can use the following code snippet to read in your username and password.
+After doing so, you can use the <code class="docutils literal notranslate"><span class="pre">kinit_username</span></code> function from <code class="docutils literal notranslate"><span class="pre">livy-submit</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">livy_submit</span> <span class="kn">import</span> <span class="n">kinit_username</span>
+<span class="n">secrets_path</span> <span class="o">=</span> <span class="s1">&#39;/var/run/secrets/user_credentials/KRB5_CREDS&#39;</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">secrets_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">user</span><span class="p">,</span> <span class="n">pw</span> <span class="o">=</span> <span class="p">[</span><span class="n">_</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()]</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;user=</span><span class="si">%s</span><span class="s1">, pw=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">pw</span><span class="p">)))</span>
+<span class="c1"># Show that the kinit_keytab function works as expected</span>
+<span class="n">kinit_username</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">pw</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="define-rest-endpoint-function">
+<h2>3. Define REST endpoint function<a class="headerlink" href="#define-rest-endpoint-function" title="Permalink to this headline">¶</a></h2>
+<p>In this example, we are going to publish one function that responds to GET requests.
+In this function we will first kinit to ensure that we always have a valid Kerberos ticket.
+Then we’ll upload our file that we want to execute.
+Then we create a livy api object.
+Next we will use that livy api object to submit the file and finally we return the Batch object that contains the livy info that we need to monitor it’s status elsewhere.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tranquilizer</span> <span class="kn">import</span> <span class="n">tranquilize</span>
+
+<span class="c1"># Define the file that we want to execute on Yarn with livy submit</span>
+<span class="n">LOCAL_FILE</span> <span class="o">=</span> <span class="s1">&#39;/opt/continuum/project/livy-submit/02-flights-per-day.py&#39;</span>
+
+<span class="nd">@tranquilize</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;GET&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">submit</span><span class="p">():</span>
+    <span class="c1"># Use kinit_keytab or kinit_username, depending on your preference</span>
+    <span class="n">kinit_keytab</span><span class="p">(</span><span class="n">keytab_path</span><span class="p">,</span> <span class="n">keytab_principal</span><span class="p">)</span>
+    <span class="n">file_on_hdfs</span> <span class="o">=</span> <span class="n">upload</span><span class="p">(</span><span class="n">LOCAL_FILE</span><span class="p">,</span> <span class="n">namenode_url</span><span class="o">=</span><span class="n">namenode_url</span><span class="p">)</span>
+    <span class="n">livy_api</span> <span class="o">=</span> <span class="n">LivyAPI</span><span class="p">(</span><span class="n">server_url</span><span class="o">=</span><span class="n">livy_url</span><span class="p">)</span>
+    <span class="n">batch</span> <span class="o">=</span> <span class="n">livy_api</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;livy test&#39;</span><span class="p">,</span> 
+                            <span class="n">file</span><span class="o">=</span><span class="n">file_on_hdfs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">batch</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>One of the great things about the <code class="docutils literal notranslate"><span class="pre">tranquilizer</span></code> project is that the decorator syntax still let’s you use the <code class="docutils literal notranslate"><span class="pre">submit</span></code> function in this notebook so that you can easily debug your function.
+Then, when you’re ready to deploy it, just remove all of your debugging code and the endpoint works as expected!</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># For debugging, we&#39;ll want to run this submit function to make sure our code works</span>
+<span class="n">submit</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>For more reading on tranquilizer, have a look at the <a class="reference external" href="https://github.com/AlbertDeFusco/tranquilizer">tranquilizer readme on github</a>. There is much more information there.</p>
+</div>
+<div class="section" id="publish-with-tranquilizer">
+<h2>4. Publish with tranquilizer<a class="headerlink" href="#publish-with-tranquilizer" title="Permalink to this headline">¶</a></h2>
+<p>When you’re ready to publish this REST API, you’d want to add the following command to your anaconda-project:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">livy</span><span class="o">-</span><span class="n">submit</span><span class="o">-</span><span class="n">rest</span><span class="o">-</span><span class="n">api</span><span class="p">:</span>
+    <span class="n">unix</span><span class="p">:</span> <span class="n">tranquilizer</span> <span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">this</span><span class="o">/</span><span class="n">notebook</span><span class="o">.</span><span class="n">ipynb</span> <span class="o">--</span><span class="n">name</span> <span class="s2">&quot;livy-submit-rest-api&quot;</span>
+    <span class="n">supports_http_options</span><span class="p">:</span> <span class="n">true</span>
+</pre></div>
+</div>
+<p>Then you’ll need to commit the project and <a class="reference external" href="https://enterprise-docs.anaconda.com/en/latest/data-science-workflows/deployments/project.html#to-deploy-a-project">deploy</a> the “livy-submit-rest-api” command.</p>
+<p>If you’re not using Anaconda Enterprise, then deploying requires you to run <code class="docutils literal notranslate"><span class="pre">tranquilizer</span> <span class="pre">path/to/this/notebook.ipynb</span></code> and all of the other parts of deploying and securing your deployment are left up to you, the reader.</p>
+</div>
+<div class="section" id="testing-the-deployment">
+<h2>5. Testing the deployment<a class="headerlink" href="#testing-the-deployment" title="Permalink to this headline">¶</a></h2>
+<p>If you’re using Anaconda Enterprise, then you will have chosen a fixed URL for your deployment, let’s say <code class="docutils literal notranslate"><span class="pre">curl</span> <span class="pre">-X</span> <span class="pre">GET</span> <span class="pre">https://livy-submit.demo.anaconda.com/submit.</span> <span class="pre">This</span> <span class="pre">will</span> <span class="pre">return</span> <span class="pre">a</span> <span class="pre">livy</span> <span class="pre">batch</span> <span class="pre">ID.</span> <span class="pre">Use</span> <span class="pre">that</span> <span class="pre">with</span> </code>livy log -f <batchId>` to watch the logs from your triggered Spark job.</p>
+<p>TODO: Add instructions for using the AE5 token for auth’d deployments
+TODO: Add full notebook or anaconda project for people to download</p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">livy-submit</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="as_cli.html">Using livy-submit from the command line</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli_docs.html">livy-submit CLI docs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="as_library.html">Using livy-submit as a library</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Using livy-submit inside a REST API</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../livy_submit.html">API docs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">module list</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="as_library.html" title="previous chapter">Use livy-submit as a Python Library</a></li>
+      <li>Next: <a href="../livy_submit.html" title="next chapter">livy_submit package</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Anaconda.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/examples/as_rest_api.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

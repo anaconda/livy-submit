@@ -1,0 +1,248 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Use livy-submit as a CLI tool &#8212; livy-submit 0.5.4 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Use livy-submit as a Python Library" href="as_library.html" />
+    <link rel="prev" title="Use livy-submit as a cli" href="as_cli.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="use-livy-submit-as-a-cli-tool">
+<h1>Use livy-submit as a CLI tool<a class="headerlink" href="#use-livy-submit-as-a-cli-tool" title="Permalink to this headline">¶</a></h1>
+<p>If you have placed a livy submit configuration file in the expected location <code class="docutils literal notranslate"><span class="pre">~/.livy-submit.json</span></code> then you will be able to execute livy from the command line after you have installed it into your AE project.
+<code class="docutils literal notranslate"><span class="pre">livy</span></code> has four subcommands: <code class="docutils literal notranslate"><span class="pre">info</span></code>, <code class="docutils literal notranslate"><span class="pre">submit</span></code>, <code class="docutils literal notranslate"><span class="pre">kill</span></code> and <code class="docutils literal notranslate"><span class="pre">log</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">livy</span> <span class="pre">info</span></code>: Livy info is used to get information on live sessions and recently completed sessions.
+It can be used in one of three ways:</p>
+<p><code class="docutils literal notranslate"><span class="pre">livy</span> <span class="pre">info</span></code>: Show me all available information
+<code class="docutils literal notranslate"><span class="pre">livy</span> <span class="pre">info</span> <span class="pre">--state</span></code>: Show me all available job IDs with their corresponding job state. The job state will generally be “starting, success or errored”
+<code class="docutils literal notranslate"><span class="pre">livy</span> <span class="pre">info</span> <span class="pre">jobID</span></code>: Show me all info for the one job I specify with jobID
+<code class="docutils literal notranslate"><span class="pre">livy</span> <span class="pre">info</span> <span class="pre">jobID</span> <span class="pre">--state</span></code>: Show me the state for the one job I specify with jobID</p>
+<p>Full CLI help output:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">anaconda50_hadoop</span><span class="p">)</span> <span class="n">livy</span> <span class="n">info</span> <span class="o">-</span><span class="n">h</span>
+<span class="n">usage</span><span class="p">:</span> <span class="n">livy</span><span class="o">-</span><span class="n">submit</span> <span class="n">info</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">state</span><span class="p">]</span> <span class="p">[</span><span class="n">batchId</span><span class="p">]</span>
+
+<span class="n">positional</span> <span class="n">arguments</span><span class="p">:</span>
+  <span class="n">batchId</span>     <span class="n">The</span> <span class="n">Livy</span> <span class="n">batch</span> <span class="n">ID</span> <span class="n">that</span> <span class="n">you</span> <span class="n">want</span> <span class="n">information</span> <span class="k">for</span>
+
+<span class="n">optional</span> <span class="n">arguments</span><span class="p">:</span>
+  <span class="o">-</span><span class="n">h</span><span class="p">,</span> <span class="o">--</span><span class="n">help</span>  <span class="n">show</span> <span class="n">this</span> <span class="n">help</span> <span class="n">message</span> <span class="ow">and</span> <span class="n">exit</span>
+  <span class="o">--</span><span class="n">state</span>     <span class="n">Only</span> <span class="n">show</span> <span class="n">the</span> <span class="n">current</span> <span class="n">status</span> <span class="n">of</span> <span class="n">the</span> <span class="n">job</span>
+</pre></div>
+</div>
+<div class="section" id="livy-submit">
+<h2><code class="docutils literal notranslate"><span class="pre">livy</span> <span class="pre">submit</span></code><a class="headerlink" href="#livy-submit" title="Permalink to this headline">¶</a></h2>
+<p>livy submit has a lot of CLI options. Let’s look at the help to see just what it looks like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>(anaconda50_hadoop) livy submit -h
+usage: livy-submit submit [-h] --name NAME --file FILE
+                          [--archives ARCHIVES]
+                          [--driver-memory DRIVERMEMORY]
+                          [--driver-cores DRIVERCORES]
+                          [--executor-memory EXECUTORMEMORY]
+                          [--executor-cores EXECUTORCORES]
+                          [--num-executors NUMEXECUTORS] [--queue QUEUE]
+                          [--args ARGS] [--py-files PYFILES]
+                          [--conf CONF]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --name NAME           The name that your Spark job should have on the
+                        Yarn RM
+  --file FILE           The file that should be executed during your
+                        Spark job. If this file is local it will be
+                        uploaded to a temporary path on HDFS so it will
+                        be accessible from your Spark driver and
+                        executors
+  --archives ARCHIVES   An archive to be used in this session. Parameter
+                        can be used multiple times to provide multiple
+                        archives. Same deal as the `file` parameter.
+                        These archives will be uploaded to HDFS.
+  --driver-memory DRIVERMEMORY
+                        e.g. 512m, 2g. Amount of memory to use for the
+                        driver process, i.e. where SparkContext is
+                        initialized, in the same format as JVM memory
+                        strings with a size unit suffix (&quot;k&quot;, &quot;m&quot;, &quot;g&quot; or
+                        &quot;t&quot;). Overrides settings contained in config
+                        files.
+  --driver-cores DRIVERCORES
+                        Number of cores to use for the driver process,
+                        only in cluster mode. Overrides settings
+                        contained in config files.
+  --executor-memory EXECUTORMEMORY
+                        e.g. 512m, 2g. Amount of memory to use per
+                        executor process, in the same format as JVM
+                        memory strings with a size unit suffix (&quot;k&quot;, &quot;m&quot;,
+                        &quot;g&quot; or &quot;t&quot;). Overrides settings contained in
+                        config files.
+  --executor-cores EXECUTORCORES
+                        The number of cores for each executor. Overrides
+                        settings contained in config files.
+  --num-executors NUMEXECUTORS
+                        Number of executors to launch for this session
+  --queue QUEUE         The YARN queue that your job should run in
+  --args ARGS           Extra command line args for the application. If
+                        your python main is expecting command line args,
+                        use this variable to pass them in as space
+                        delimited. Will use shlex to split args
+  --py-files PYFILES    Python files to be used in this session.
+                        Parameter can be used multiple times to provide
+                        multiple archives. Same deal as the `file`
+                        parameter. These archives will be uploaded to
+                        HDFS.
+  --conf CONF           Additional Spark/Yarn/PySpark configuration
+                        properties. Parameter can be used multiple times
+                        to provide multiple parameters. Values should
+                        take the form of --conf spark.property=value
+</pre></div>
+</div>
+</div>
+<div class="section" id="livy-log">
+<h2><code class="docutils literal notranslate"><span class="pre">livy</span> <span class="pre">log</span></code><a class="headerlink" href="#livy-log" title="Permalink to this headline">¶</a></h2>
+<p>Use the log subcommand to do one of two things:</p>
+<p><code class="docutils literal notranslate"><span class="pre">livy</span> <span class="pre">log</span> <span class="pre">LIVY_JOB_ID</span></code>: Get the last 100 lines of the Spark log
+<code class="docutils literal notranslate"><span class="pre">livy</span> <span class="pre">log</span> <span class="pre">-f</span> <span class="pre">LIVY_JOB_ID</span></code>: Tail the log and get a continuous update from the Spark log.
+These are pretty self-explanatory. Try them out and see how they work. Full livy log help text:</p>
+</div>
+<div class="section" id="livy-kill">
+<h2><code class="docutils literal notranslate"><span class="pre">livy</span> <span class="pre">kill</span></code><a class="headerlink" href="#livy-kill" title="Permalink to this headline">¶</a></h2>
+<p>This is equivalent to using the yarn CLI to kill an application by its applicationID: <code class="docutils literal notranslate"><span class="pre">yarn</span> <span class="pre">application</span> <span class="pre">-kill</span> <span class="pre">applicationID</span></code>.
+To use this, you’ll need the livy job ID and then you just kill it: <code class="docutils literal notranslate"><span class="pre">livy</span> <span class="pre">kill</span> <span class="pre">LIVY_JOB_ID</span></code>.
+Note that once you kill the livy app, it removes the logs from the Livy server.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">anaconda50_hadoop</span><span class="p">)</span> <span class="n">livy</span> <span class="n">info</span> <span class="mi">39</span>
+<span class="n">Batch</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">39</span><span class="p">,</span> <span class="n">appId</span><span class="o">=</span><span class="s1">&#39;application_1544723249474_0277&#39;</span><span class="p">,</span> <span class="n">appInfo</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;driverLogUrl&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;sparkUiUrl&#39;</span><span class="p">:</span> <span class="s1">&#39;http://ip-172-31-20-241.ec2.internal:20888/proxy/application_1544723249474_0277/&#39;</span><span class="p">},</span> <span class="n">log</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="s1">&#39;success&#39;</span><span class="p">)</span>
+
+<span class="p">(</span><span class="n">anaconda50_hadoop</span><span class="p">)</span> <span class="n">livy</span> <span class="n">kill</span> <span class="mi">39</span>
+<span class="n">Job</span> <span class="n">killed</span><span class="p">:</span>
+<span class="p">{</span><span class="s1">&#39;msg&#39;</span><span class="p">:</span> <span class="s1">&#39;deleted&#39;</span><span class="p">}</span>
+
+<span class="p">(</span><span class="n">anaconda50_hadoop</span><span class="p">)</span> <span class="n">livy</span> <span class="n">info</span> <span class="mi">39</span>
+<span class="n">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">):</span>
+  <span class="n">File</span> <span class="s2">&quot;/opt/continuum/anaconda/envs/anaconda50_hadoop/bin/livy&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">11</span><span class="p">,</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">cli</span><span class="p">())</span>
+  <span class="n">File</span> <span class="s2">&quot;/opt/continuum/anaconda/envs/anaconda50_hadoop/lib/python3.6/site-packages/livy_submit/cli.py&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">612</span><span class="p">,</span> <span class="ow">in</span> <span class="n">cli</span>
+    <span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;func&quot;</span><span class="p">](</span><span class="o">**</span><span class="n">cfg</span><span class="p">)</span>
+  <span class="n">File</span> <span class="s2">&quot;/opt/continuum/anaconda/envs/anaconda50_hadoop/lib/python3.6/site-packages/livy_submit/cli.py&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">210</span><span class="p">,</span> <span class="ow">in</span> <span class="n">_livy_info_func</span>
+    <span class="n">resp</span> <span class="o">=</span> <span class="n">api_instance</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">batchId</span><span class="p">)</span>
+  <span class="n">File</span> <span class="s2">&quot;/opt/continuum/anaconda/envs/anaconda50_hadoop/lib/python3.6/site-packages/livy_submit/livy_api.py&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">90</span><span class="p">,</span> <span class="n">ininfo</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_request</span><span class="p">(</span><span class="s2">&quot;get&quot;</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
+  <span class="n">File</span> <span class="s2">&quot;/opt/continuum/anaconda/envs/anaconda50_hadoop/lib/python3.6/site-packages/livy_submit/livy_api.py&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">281</span><span class="p">,</span> <span class="ow">in</span> <span class="n">_request</span>
+    <span class="n">resp</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+  <span class="n">File</span> <span class="s2">&quot;/opt/continuum/anaconda/envs/anaconda50_hadoop/lib/python3.6/site-packages/requests/models.py&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">935</span><span class="p">,</span> <span class="ow">in</span> <span class="n">raise_for_status</span>
+    <span class="k">raise</span> <span class="n">HTTPError</span><span class="p">(</span><span class="n">http_error_msg</span><span class="p">,</span> <span class="n">response</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+<span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">:</span> <span class="mi">404</span> <span class="n">Client</span> <span class="n">Error</span><span class="p">:</span> <span class="n">Not</span> <span class="n">Found</span> <span class="k">for</span> <span class="n">url</span><span class="p">:</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">ip</span><span class="o">-</span><span class="mi">172</span><span class="o">-</span><span class="mi">31</span><span class="o">-</span><span class="mi">20</span><span class="o">-</span><span class="mf">241.</span><span class="n">ec2</span><span class="o">.</span><span class="n">internal</span><span class="p">:</span><span class="mi">8998</span><span class="o">/</span><span class="n">batches</span><span class="o">/</span><span class="mi">39</span>
+</pre></div>
+</div>
+<p>Full livy kill CLI help output:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">anaconda50_hadoop</span><span class="p">)</span> <span class="n">livy</span> <span class="n">kill</span> <span class="o">-</span><span class="n">h</span>
+<span class="n">usage</span><span class="p">:</span> <span class="n">livy</span><span class="o">-</span><span class="n">submit</span> <span class="n">kill</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="n">batchId</span>
+
+<span class="n">positional</span> <span class="n">arguments</span><span class="p">:</span>
+  <span class="n">batchId</span>     <span class="n">The</span> <span class="n">Livy</span> <span class="n">batch</span> <span class="n">ID</span> <span class="n">that</span> <span class="n">you</span> <span class="n">want</span> <span class="n">to</span> <span class="n">terminate</span>
+
+<span class="n">optional</span> <span class="n">arguments</span><span class="p">:</span>
+  <span class="o">-</span><span class="n">h</span><span class="p">,</span> <span class="o">--</span><span class="n">help</span>  <span class="n">show</span> <span class="n">this</span> <span class="n">help</span> <span class="n">message</span> <span class="ow">and</span> <span class="n">exit</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">livy-submit</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="as_cli.html">Using livy-submit from the command line</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">livy-submit CLI docs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="as_library.html">Using livy-submit as a library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="as_rest_api.html">Using livy-submit inside a REST API</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../livy_submit.html">API docs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">module list</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="as_cli.html" title="previous chapter">Use livy-submit as a cli</a></li>
+      <li>Next: <a href="as_library.html" title="next chapter">Use livy-submit as a Python Library</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Anaconda.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/examples/cli_docs.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

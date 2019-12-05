@@ -1,0 +1,388 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>livy_submit package &#8212; livy-submit 0.5.4 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="livy_submit" href="modules.html" />
+    <link rel="prev" title="livy-submit as REST API" href="examples/as_rest_api.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="livy-submit-package">
+<h1>livy_submit package<a class="headerlink" href="#livy-submit-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-livy_submit.cli">
+<span id="livy-submit-cli-module"></span><h2>livy_submit.cli module<a class="headerlink" href="#module-livy_submit.cli" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="livy_submit.cli.cli">
+<code class="sig-prename descclassname">livy_submit.cli.</code><code class="sig-name descname">cli</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#livy_submit.cli.cli" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-livy_submit.hdfs_api">
+<span id="livy-submit-hdfs-api-module"></span><h2>livy_submit.hdfs_api module<a class="headerlink" href="#module-livy_submit.hdfs_api" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="livy_submit.hdfs_api.delete">
+<code class="sig-prename descclassname">livy_submit.hdfs_api.</code><code class="sig-name descname">delete</code><span class="sig-paren">(</span><em class="sig-param">hdfs_dir: str</em>, <em class="sig-param">namenode_url: str</em><span class="sig-paren">)</span><a class="headerlink" href="#livy_submit.hdfs_api.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete <cite>hdfs_dir</cite> and all its contents</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hdfs_dir</strong> (The folder (or full path) to upload <cite>local_file</cite> to. If none is provided,) – then the file will be uploaded to the following directory:
+/tmp/livy_{current user name}_{First six characters of uuid4}_{current time in seconds}’</p></li>
+<li><p><strong>namenode_url</strong> (<em>The url of the namenode. Should include protocol</em><em> (</em><em>http/https</em><em>) </em><em>and port</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="livy_submit.hdfs_api.get_client">
+<code class="sig-prename descclassname">livy_submit.hdfs_api.</code><code class="sig-name descname">get_client</code><span class="sig-paren">(</span><em class="sig-param">namenode_url: str</em><span class="sig-paren">)</span> &#x2192; hdfs.ext.kerberos.KerberosClient<a class="headerlink" href="#livy_submit.hdfs_api.get_client" title="Permalink to this definition">¶</a></dt>
+<dd><p>Thin wrapper around KerberosClient</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>namenode_url</strong> (<em>The url of the namenode. Should include protocol</em><em> (</em><em>http/https</em><em>) </em><em>and port</em>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="livy_submit.hdfs_api.get_kerberos_user">
+<code class="sig-prename descclassname">livy_submit.hdfs_api.</code><code class="sig-name descname">get_kerberos_user</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#livy_submit.hdfs_api.get_kerberos_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the kerberos user from klist -e.</p>
+<p><a class="reference external" href="mailto:svc_user/my&#46;hostname&#46;com&#37;&#52;&#48;MY&#46;DOMAIN&#46;COM">svc_user/my<span>&#46;</span>hostname<span>&#46;</span>com<span>&#64;</span>MY<span>&#46;</span>DOMAIN<span>&#46;</span>COM</a> -&gt; svc_user
+<a class="reference external" href="mailto:svc_user&#37;&#52;&#48;MY&#46;DOMAIN&#46;COM">svc_user<span>&#64;</span>MY<span>&#46;</span>DOMAIN<span>&#46;</span>COM</a> -&gt; svc_user</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="livy_submit.hdfs_api.upload">
+<code class="sig-prename descclassname">livy_submit.hdfs_api.</code><code class="sig-name descname">upload</code><span class="sig-paren">(</span><em class="sig-param">local_file: str</em>, <em class="sig-param">namenode_url: str</em>, <em class="sig-param">hdfs_dir: str = None</em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#livy_submit.hdfs_api.upload" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>local_file</strong> (<em>The local file to upload</em>) – </p></li>
+<li><p><strong>namenode_url</strong> (<em>The url of the namenode. Should include protocol</em><em> (</em><em>http/https</em><em>) </em><em>and port</em>) – </p></li>
+<li><p><strong>hdfs_dir</strong> ((optional) The directory in which to place <cite>local_file</cite>. If not provided, an hdfs) – directory will be generated:
+/user/{hdfs_user}/livy-submit-files/{first six chars of uuid4}_{current time in seconds}’</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>str</strong></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>The full path to <cite>local_file</cite> was uploaded.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-livy_submit.krb">
+<span id="livy-submit-krb-module"></span><h2>livy_submit.krb module<a class="headerlink" href="#module-livy_submit.krb" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="livy_submit.krb.kinit_keytab">
+<code class="sig-prename descclassname">livy_submit.krb.</code><code class="sig-name descname">kinit_keytab</code><span class="sig-paren">(</span><em class="sig-param">path</em>, <em class="sig-param">principal</em><span class="sig-paren">)</span><a class="headerlink" href="#livy_submit.krb.kinit_keytab" title="Permalink to this definition">¶</a></dt>
+<dd><p>kinit using a keytab</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em>) – The path to the keytab</p></li>
+<li><p><strong>principal</strong> (<em>str</em>) – The full principal that should be used to kinit</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="livy_submit.krb.kinit_username">
+<code class="sig-prename descclassname">livy_submit.krb.</code><code class="sig-name descname">kinit_username</code><span class="sig-paren">(</span><em class="sig-param">username</em>, <em class="sig-param">password</em>, <em class="sig-param">domain=None</em><span class="sig-paren">)</span><a class="headerlink" href="#livy_submit.krb.kinit_username" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use pexpect to run kinit so we can access resources that
+require kerberos authentication</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>username</strong> (<em>str</em>) – The kerberos username. You may optionally include the domain along with
+your username if you need to specify a diferent domain than whatever
+is set as the <cite>default_realm</cite> in the krb5.conf</p></li>
+<li><p><strong>password</strong> (<em>str</em>) – The password associated with <cite>username</cite></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-livy_submit.livy_api">
+<span id="livy-submit-livy-api-module"></span><h2>livy_submit.livy_api module<a class="headerlink" href="#module-livy_submit.livy_api" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="livy_submit.livy_api.Batch">
+<em class="property">class </em><code class="sig-prename descclassname">livy_submit.livy_api.</code><code class="sig-name descname">Batch</code><span class="sig-paren">(</span><em class="sig-param">id: str</em>, <em class="sig-param">appId: str</em>, <em class="sig-param">appInfo: dict</em>, <em class="sig-param">log: List</em>, <em class="sig-param">state: str</em><span class="sig-paren">)</span><a class="headerlink" href="#livy_submit.livy_api.Batch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="livy_submit.livy_api.LivyAPI">
+<em class="property">class </em><code class="sig-prename descclassname">livy_submit.livy_api.</code><code class="sig-name descname">LivyAPI</code><span class="sig-paren">(</span><em class="sig-param">server_url: str</em>, <em class="sig-param">use_tls: bool = False</em>, <em class="sig-param">headers: dict = None</em>, <em class="sig-param">auth=None</em>, <em class="sig-param">verify: bool = True</em><span class="sig-paren">)</span><a class="headerlink" href="#livy_submit.livy_api.LivyAPI" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="livy_submit.livy_api.LivyAPI.all_info">
+<code class="sig-name descname">all_info</code><span class="sig-paren">(</span><em class="sig-param">from_index: int = None</em>, <em class="sig-param">size: int = None</em><span class="sig-paren">)</span> &#x2192; Tuple[int, int, List[livy_submit.livy_api.Batch]]<a class="headerlink" href="#livy_submit.livy_api.LivyAPI.all_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns all the active batch sessions.</p>
+<p>Handles: GET /batches</p>
+<p>TODO: consider adding a “logs” parameter that does not include
+the logs in the json output</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>optional</strong> (<em>size</em><em>,</em>) – </p></li>
+<li><p><strong>optional</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>int</strong> (<em>The start index of the fetched sessions</em>)</p></li>
+<li><p><strong>int</strong> (<em>The number of fetched sessions</em>)</p></li>
+<li><p><strong>dict</strong> (<em>List of Batch objects, indexed by their id</em>)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="livy_submit.livy_api.LivyAPI.info">
+<code class="sig-name descname">info</code><span class="sig-paren">(</span><em class="sig-param">batch_id: int</em><span class="sig-paren">)</span> &#x2192; livy_submit.livy_api.Batch<a class="headerlink" href="#livy_submit.livy_api.LivyAPI.info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the batch session information.</p>
+<p>Handles: GET /batches/{batchId}</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="livy_submit.livy_api.LivyAPI.kill">
+<code class="sig-name descname">kill</code><span class="sig-paren">(</span><em class="sig-param">batchId: int</em><span class="sig-paren">)</span><a class="headerlink" href="#livy_submit.livy_api.LivyAPI.kill" title="Permalink to this definition">¶</a></dt>
+<dd><p>Terminate Livy job and delete its state from the Livy server</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>batchId</strong> (<em>The batch id that you want to kill</em>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="livy_submit.livy_api.LivyAPI.log">
+<code class="sig-name descname">log</code><span class="sig-paren">(</span><em class="sig-param">batch_id: int</em>, <em class="sig-param">starting_line: int = None</em>, <em class="sig-param">num_lines: int = None</em><span class="sig-paren">)</span> &#x2192; Tuple[int, int, int, List[str]]<a class="headerlink" href="#livy_submit.livy_api.LivyAPI.log" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the log lines from the batch job represented by <cite>session_id</cite></p>
+<p>Will return up to the last 100 lines of the log. For more log lines
+consider calling this function multiple times and caching the lines locally
+or consider using the Spark History Server for more.</p>
+<p>TODO: Submit bug report to Livy since both <cite>starting_line</cite> and <cite>num_lines</cite> appear
+to be ignored in the Livy REST API</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch_id</strong> (<em>The job to get info for</em>) – </p></li>
+<li><p><strong>starting_line</strong> (<em>(</em><em>optional</em><em>) </em><em>The offset from zero for the log lines</em>) – </p></li>
+<li><p><strong>num_lines</strong> (<em>(</em><em>optional</em><em>) </em><em>Max number of log lines to return</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>int</strong> (<em>The batch id</em>)</p></li>
+<li><p><strong>int</strong> (<em>Offset from start of log</em>)</p></li>
+<li><p><strong>int</strong> (<em>Number of log lines</em>)</p></li>
+<li><p><strong>list of strings</strong> (<em>The log lines</em>)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="livy_submit.livy_api.LivyAPI.state">
+<code class="sig-name descname">state</code><span class="sig-paren">(</span><em class="sig-param">batch_id: int</em><span class="sig-paren">)</span> &#x2192; Tuple[int, str]<a class="headerlink" href="#livy_submit.livy_api.LivyAPI.state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the state of batch session.</p>
+<p>Handles: GET /batches/{batchId}/state</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>batch_id</strong> (<em>The ID of the livy /batches job.</em>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>int</strong> (<em>Batch session id</em>)</p></li>
+<li><p><strong>str</strong> (<em>The current state of batch session</em>)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="livy_submit.livy_api.LivyAPI.submit">
+<code class="sig-name descname">submit</code><span class="sig-paren">(</span><em class="sig-param">name: str</em>, <em class="sig-param">file: str</em>, <em class="sig-param">driverMemory: str = None</em>, <em class="sig-param">driverCores: int = None</em>, <em class="sig-param">executorMemory: str = None</em>, <em class="sig-param">executorCores: int = None</em>, <em class="sig-param">numExecutors: int = None</em>, <em class="sig-param">archives: List[str] = None</em>, <em class="sig-param">queue: str = None</em>, <em class="sig-param">conf: dict = None</em>, <em class="sig-param">args: List[str] = None</em>, <em class="sig-param">pyFiles: List[str] = None</em><span class="sig-paren">)</span> &#x2192; livy_submit.livy_api.Batch<a class="headerlink" href="#livy_submit.livy_api.LivyAPI.submit" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Submit a batch job to the Livy server</p>
+<dl class="simple">
+<dt>name<span class="classifier">str</span></dt><dd><p>The name that your Spark job should have on the Yarn RM</p>
+</dd>
+<dt>file<span class="classifier">str</span></dt><dd><p>The file that should be executed during your Spark job. This file
+path must be accessible from the nodes that run your Spark driver/executors.
+It is likely that this means that you will need to have pre-uploaded your file
+to hdfs and then use the hdfs path for this <cite>file</cite> variable.
+e.g.: file=’hdfs://user/testuser/pi.py’</p>
+</dd>
+<dt>driverMemory<span class="classifier">str, optional</span></dt><dd><p>e.g. 512m, 2g
+Amount of memory to use for the driver process, i.e. where
+SparkContext is initialized, in the same format as JVM memory
+strings with a size unit suffix (“k”, “m”, “g” or “t”)</p>
+</dd>
+<dt>driverCores<span class="classifier">int, optional</span></dt><dd><p>Number of cores to use for the driver process, only in cluster mode.</p>
+</dd>
+<dt>executorMemory<span class="classifier">str, optional</span></dt><dd><p>e.g. 512m, 2g
+Amount of memory to use per executor process, in the same format as
+JVM memory strings with a size unit suffix (“k”, “m”, “g” or “t”)</p>
+</dd>
+<dt>executorCores<span class="classifier">int, optional</span></dt><dd><p>The number of cores to use on each executor</p>
+</dd>
+<dt>archives<span class="classifier">List of strings</span></dt><dd><p>Archives to be used in this session. Same deal as the <cite>file</cite> parameter. These
+archives likely need to already be uploaded to HDFS unless the files already
+exist on your Yarn nodes or if you have something like NFS available on all
+of the Yarn nodes.</p>
+</dd>
+<dt>queue<span class="classifier">str</span></dt><dd><p>The YARN queue that your job should run in</p>
+</dd>
+<dt>conf<span class="classifier">dict</span></dt><dd><p>Additonal spark configuration properties. Any valid variable listed in the
+spark configuration for your version of spark. See all here
+<a class="reference external" href="https://spark.apache.org/docs/latest/configuration.html">https://spark.apache.org/docs/latest/configuration.html</a>
+e.g. {‘spark.pyspark.python’: ‘/opt/anaconda3/bin/python’}</p>
+</dd>
+<dt>args<span class="classifier">list of strings</span></dt><dd><p>Extra command line args for the application. If your python main is expecting
+command line args, use this variable to pass them in.</p>
+</dd>
+<dt>pyFiles: list of strings</dt><dd><p>Python files to be used in this session. Same deal as the <cite>file</cite> parameter.
+These archives need to be already uploaded to HDFS.</p>
+</dd>
+</dl>
+<dl>
+<dt>Batch</dt><dd><p>The information that is immediately available on submission to Livy. e.g.:
+{‘id’: 20,</p>
+<blockquote>
+<div><p>‘state’: ‘starting’,
+‘appId’: None,
+‘appInfo’: {‘driverLogUrl’: None, ‘sparkUiUrl’: None},
+‘log’: [‘stdout: ‘, ‘</p>
+</div></blockquote>
+</dd>
+</dl>
+</div></blockquote>
+<p>stderr: ‘, ‘
+YARN Diagnostics: ‘]}</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-livy_submit">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-livy_submit" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">livy-submit</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="examples/as_cli.html">Using livy-submit from the command line</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/cli_docs.html">livy-submit CLI docs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/as_library.html">Using livy-submit as a library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/as_rest_api.html">Using livy-submit inside a REST API</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API docs</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">module list</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="examples/as_rest_api.html" title="previous chapter">livy-submit as REST API</a></li>
+      <li>Next: <a href="modules.html" title="next chapter">livy_submit</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Anaconda.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/livy_submit.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
