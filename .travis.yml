@@ -16,6 +16,7 @@ Tht4FefXso6lDewMxDKRqz8DdamOAPcQq6ZyFLzd97qhpBlQrw1c="
 install:
   - sudo apt-get update
   - set -e
+  # from https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/use-conda-with-travis-ci.html#the-travis-yml-file
   - curl -X GET https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -o mc.sh
   - bash mc.sh -b -p $HOME/miniconda
   - source "$HOME/miniconda/etc/profile.d/conda.sh"
@@ -27,7 +28,7 @@ install:
 
 script: 
   - set -e
-  - conda install --file requirements-dev.txt --file requirements.txt --file requirements-docs.txt
+  - conda install --file requirements-dev.txt --file requirements.txt --file requirements-docs.txt -c conda-forge
   - pushd docs
   - make docs
 
