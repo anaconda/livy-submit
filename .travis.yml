@@ -29,11 +29,12 @@ install:
 script: 
   - set -e
   - conda install --file requirements-dev.txt --file requirements.txt --file requirements-docs.txt -c conda-forge
-  - conda activate base && pushd docs && make html
+  - conda activate base && pushd docs && make html && popd
 
 after_success:
-  - |
-    if [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_EVENT_TYPE" == "push" ]]; then
-      doctr deploy . --built-docs build/html
-    fi
+  #- |
+  #  if [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_EVENT_TYPE" == "push" ]]; then
+  #    doctr deploy . --built-docs docs/build/html
+  #  fi
+  - doctr deploy . --built-docs docs/build/html
 
