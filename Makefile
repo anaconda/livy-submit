@@ -13,7 +13,9 @@ clean: ## Remove dev environment
 dev: ## Make dev environment locally
 	conda create -n $(DEV_ENV) --file requirements.txt --file requirements-dev.txt -c conda-forge -y
 	source activate $(DEV_ENV) && \
+	    which pip && \
 	    pip install -e . && \
+	    which python && \
     	    python -m ipykernel install --user --name livy-submit-dev
 
 docs: dev ## Make docs conda environment and build the docs
