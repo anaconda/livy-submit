@@ -120,8 +120,8 @@ class LivyAPI:
 
     def submit(
         self,
-        name: str,
         file: str,
+        name: str = None,
         driverMemory: str = None,
         driverCores: int = None,
         executorMemory: str = None,
@@ -199,8 +199,8 @@ class LivyAPI:
         #         print(data)
 
         # check for collision with existing batch name
-        _, _, batches = self.all_info()
-        if batches:
+        if name is not None:
+            _, _, batches = self.all_info()
             for num,batch in batches.items():
                 if batch.name == name:
                     msg = f'''The batch name '{name}' is already in use by Livy Batch Job {batch.id}.
