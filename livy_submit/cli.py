@@ -257,8 +257,8 @@ def _livy_info_parser(subparsers) -> ArgumentParser:
 def _livy_submit_func(
     livy_url: str,
     namenode_url: str,
-    name: str,
     file: str,
+    name: str = None,
     driverMemory: str = None,
     driverCores: int = None,
     executorMemory: str = None,
@@ -403,7 +403,7 @@ def _livy_submit_parser(subparsers):
     ap.add_argument(
         "--name",
         action="store",
-        required=True,
+        required=False,
         help="The name that your Spark job should have on the Yarn RM",
     )
     ap.add_argument(
