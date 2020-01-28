@@ -197,6 +197,19 @@ class LivyAPI:
                 continue
             data[var] = val
         #         print(data)
+
+        # check for collision with existing batch name
+        _, _, batches = self.all_info()
+        if batches:
+            for num,batch in batches.items():
+                if batch.name == name:
+                    msg = f'''The batch name '{name}' is already in use by Livy Batch Job {batch.id}.
+You can either
+  * change the name of this batch job,
+  * kill Batch Job {batch.id} with .kill({batch.id}),
+  * or wait for {batch.id} to finish and be removed from the output of .all_info()'''
+                    raise ValueError(msg)
+
         # Submit the data dict to the Livy Batches API to create a batch job
         response = self._request("post", self._base_url, data=data)
         return Batch(**response)
