@@ -5,12 +5,13 @@ from typing import List, Tuple
 
 
 class Batch:
-    def __init__(self, id: str, appId: str, appInfo: dict, log: List, state: str):
+    def __init__(self, id: str, name: str, appId: str, appInfo: dict, log: List, state: str):
         self.id = id
         self.appId = appId
         self.appInfo = appInfo
         self.log = log
         self.state = state
+        self.name = name
 
     def __eq__(self, other):
         """Make an equality comparison ignoring the logs"""
@@ -19,10 +20,11 @@ class Batch:
             and self.appId == other.appId
             and self.appInfo == other.appInfo
             and self.state == other.state
+            and self.name == other.name
         )
 
     def __repr__(self):
-        return f"Batch(id={self.id}, appId='{self.appId}', appInfo={self.appInfo}, log='', state='{self.state}')"
+        return f"Batch(id={self.id}, name='{self.name}', appId='{self.appId}', appInfo={self.appInfo}, log='', state='{self.state}')"
 
 
 class LivyAPI:
@@ -185,7 +187,7 @@ class LivyAPI:
              'appId': None,
              'appInfo': {'driverLogUrl': None, 'sparkUiUrl': None},
              'log': ['stdout: ', '\nstderr: ', '\nYARN Diagnostics: ']}
-             
+
         """
         # Get a dictionary of all of the non-None values that are passed in
         local_items = locals()
