@@ -87,6 +87,14 @@ def test_end_to_end(api_instance, kinit, upload_pi_file, livy_test_user_and_pass
     #print(logstring)
 
 
+def test_unique_job_name(api_instance, kinit, upload_pi_file, livy_test_user_and_password):
+    name="test-job-from-pytest-%s" % time.time()
+    job1 = api_instance.submit(name=name, file=upload_pi_file)
+
+    with pytest.raises(ValueError):
+        job2 = api_instance.submit(name=name, file=upload_pi_file)
+
+
 def test_all_info(api_instance, kinit):
     resp = api_instance.all_info()
 
