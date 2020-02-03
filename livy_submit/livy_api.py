@@ -24,7 +24,8 @@ class Batch:
         )
 
     def __repr__(self):
-        return f"Batch(id={self.id}, name='{self.name}', appId='{self.appId}', appInfo={self.appInfo}, log='', state='{self.state}')"
+        _name = f"'{self.name}'" if self.name is not None else self.name
+        return f"Batch(id={self.id}, name={_name}, appId='{self.appId}', appInfo={self.appInfo}, log='', state='{self.state}')"
 
 
 class LivyAPI:
@@ -138,14 +139,17 @@ class LivyAPI:
 
         Parameters
         ----------
-        name : str
-            The name that your Spark job should have on the Yarn RM
         file : str
             The file that should be executed during your Spark job. This file
             path must be accessible from the nodes that run your Spark driver/executors.
             It is likely that this means that you will need to have pre-uploaded your file
             to hdfs and then use the hdfs path for this `file` variable.
             e.g.: file='hdfs://user/testuser/pi.py'
+        name : str, optional
+            The name that your Spark job should have on the Yarn RM. The supplied
+            name must be unique for all jobs currently returned by all_info() or
+            a ValueError is thrown. If the name is not provided will be will be listed
+            as None in Livy and as the the filename in the Yarn Resource Manager.
         driverMemory : str, optional
             e.g. 512m, 2g
             Amount of memory to use for the driver process, i.e. where
@@ -202,7 +206,7 @@ class LivyAPI:
         if name is not None:
             _, _, batches = self.all_info()
             for num,batch in batches.items():
-                if batch.name == name:
+                if (batch.name is not None) and (batch.name == name):
                     msg = f'''The batch name '{name}' is already in use by Livy Batch Job {batch.id}.
 You can either
   * change the name of this batch job,
