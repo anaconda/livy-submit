@@ -40,11 +40,13 @@ def base_cmd(livy_submit_config_file, sparkmagic_config_file):
     ]
     return " ".join(base_cmd)
 
+
 @pytest.fixture(scope='session')
 def info_cmd(base_cmd):
     return base_cmd + ' info'
 
-@pytest.fixture(scope="session")
+
+@pytest.fixture(scope="function")
 def job_submit_cmd(pi_file, livy_submit_config_file, base_cmd):
     submit_cmd = (
         base_cmd
@@ -53,7 +55,7 @@ def job_submit_cmd(pi_file, livy_submit_config_file, base_cmd):
             [
                 "submit",
                 "--name",
-                "test_cli_submit",
+        	"test-cli_submit-from-pytest-%s" % time.time(),
                 "--file",
                 pi_file,
                 "--args",
@@ -65,6 +67,26 @@ def job_submit_cmd(pi_file, livy_submit_config_file, base_cmd):
     return submit_cmd
 
 
+@pytest.fixture(scope="function")
+def job_submit_cmd_noname(pi_file, livy_submit_config_file, base_cmd):
+    submit_cmd = (
+        base_cmd
+        + " "
+        + " ".join(
+            [
+                "submit",
+                "--file",
+                pi_file,
+                "--args",
+                "'100'",
+            ]
+        )
+    )
+    print(submit_cmd)
+    return submit_cmd
+
+
+@pytest.mark.parametrize('job_submit_cmd', [job_submit_cmd, job_submit_cmd_noname])
 @pytest.fixture(scope="function")
 def submitted_job(kinit, pi_file, capsys, job_submit_cmd, info_cmd):
     with sysargv(job_submit_cmd):
@@ -79,7 +101,7 @@ def submitted_job(kinit, pi_file, capsys, job_submit_cmd, info_cmd):
     
     tries = 0
     info_cmd = '%s %d' % (info_cmd, batch_job1.id)
-    while batch_job1.appId == 'None' and tries < 5:
+    while batch_job1.appId is None and tries < 10:
         time.sleep(2)
         tries += 1
         with sysargv(info_cmd):

@@ -5,12 +5,13 @@ from typing import List, Tuple
 
 
 class Batch:
-    def __init__(self, id: str, appId: str, appInfo: dict, log: List, state: str):
+    def __init__(self, id: str, name: str, appId: str, appInfo: dict, log: List, state: str):
         self.id = id
         self.appId = appId
         self.appInfo = appInfo
         self.log = log
         self.state = state
+        self.name = name
 
     def __eq__(self, other):
         """Make an equality comparison ignoring the logs"""
@@ -19,10 +20,18 @@ class Batch:
             and self.appId == other.appId
             and self.appInfo == other.appInfo
             and self.state == other.state
+            and self.name == other.name
         )
 
     def __repr__(self):
-        return f"Batch(id={self.id}, appId='{self.appId}', appInfo={self.appInfo}, log='', state='{self.state}')"
+        def _as_none(value):
+            if value is None:
+                return value
+            else:
+                # return a fully quoted string in the repr
+                return f"'{value}'"
+
+        return f"Batch(id={self.id}, name={_as_none(self.name)}, appId={_as_none(self.appId)}, appInfo={self.appInfo}, log='', state='{self.state}')"
 
 
 class LivyAPI:
@@ -118,8 +127,8 @@ class LivyAPI:
 
     def submit(
         self,
-        name: str,
         file: str,
+        name: str = None,
         driverMemory: str = None,
         driverCores: int = None,
         executorMemory: str = None,
@@ -136,14 +145,17 @@ class LivyAPI:
 
         Parameters
         ----------
-        name : str
-            The name that your Spark job should have on the Yarn RM
         file : str
             The file that should be executed during your Spark job. This file
             path must be accessible from the nodes that run your Spark driver/executors.
             It is likely that this means that you will need to have pre-uploaded your file
             to hdfs and then use the hdfs path for this `file` variable.
             e.g.: file='hdfs://user/testuser/pi.py'
+        name : str, optional
+            The name that your Spark job should have on the Yarn RM. The supplied
+            name must be unique for all known Livy jobs (starting, running, or completed) or
+            a ValueError is thrown. If the name is not provided the job name will
+            be listed as None in Livy and as the filename in the Yarn RM.
         driverMemory : str, optional
             e.g. 512m, 2g
             Amount of memory to use for the driver process, i.e. where
@@ -185,7 +197,7 @@ class LivyAPI:
              'appId': None,
              'appInfo': {'driverLogUrl': None, 'sparkUiUrl': None},
              'log': ['stdout: ', '\nstderr: ', '\nYARN Diagnostics: ']}
-             
+
         """
         # Get a dictionary of all of the non-None values that are passed in
         local_items = locals()
@@ -195,6 +207,19 @@ class LivyAPI:
                 continue
             data[var] = val
         #         print(data)
+
+        # check for collision with existing batch name
+        if name is not None:
+            _, _, batches = self.all_info()
+            for num,batch in batches.items():
+                if (batch.name is not None) and (batch.name == name):
+                    msg = f'''The batch name '{name}' is already in use by Livy Batch Job {batch.id}.
+You can either
+  * change the name of this batch job,
+  * kill Batch Job {batch.id} with .kill({batch.id}),
+  * or wait for {batch.id} to finish and be removed from the output of .all_info()'''
+                    raise ValueError(msg)
+
         # Submit the data dict to the Livy Batches API to create a batch job
         response = self._request("post", self._base_url, data=data)
         return Batch(**response)
