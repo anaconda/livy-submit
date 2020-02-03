@@ -36,6 +36,17 @@
 <p>Our intent with livy-submit is that it behaves similarly to spark-submit in “cluster” deploy mode.
 To enable this functionality, we require WebHDFS or HttpFS to be (1) enabled on the Hadoop cluster and (2) visible from wherever you are running livy-submit.
 A description of webhdfs and httpfs can be found <a class="reference external" href="https://community.cloudera.com/t5/Community-Articles/Comparison-of-HttpFs-and-WebHDFS/ta-p/245562">here from Cloudera</a>.</p>
+<div class="section" id="livy-submit-usage-patterns">
+<h2>livy-submit usage patterns<a class="headerlink" href="#livy-submit-usage-patterns" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="examples/as_cli.html">Using livy-submit from the command line</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/cli_docs.html">livy-submit CLI docs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/as_library.html">Using livy-submit as a library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/as_rest_api.html">Using livy-submit inside a REST API</a></li>
+</ul>
+</div>
+</div>
 <div class="section" id="brief-intro-by-usage-demonstration">
 <h2>Brief intro by usage demonstration<a class="headerlink" href="#brief-intro-by-usage-demonstration" title="Permalink to this headline">¶</a></h2>
 <p>livy-submit is a command line analog of spark-submit, focused on the Python / R use cases.
@@ -149,17 +160,6 @@ The construct.yaml spec has a “version” field which makes this a tractable p
 <li><p>Invoke as CLI or use as library</p></li>
 </ol>
 </div>
-<div class="section" id="livy-submit-usage-patterns">
-<h2>livy-submit usage patterns<a class="headerlink" href="#livy-submit-usage-patterns" title="Permalink to this headline">¶</a></h2>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="examples/as_cli.html">Using livy-submit from the command line</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/cli_docs.html">livy-submit CLI docs</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/as_library.html">Using livy-submit as a library</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/as_rest_api.html">Using livy-submit inside a REST API</a></li>
-</ul>
-</div>
-</div>
 <div class="section" id="livy-submit-configuration-parameters">
 <h2>livy-submit configuration parameters<a class="headerlink" href="#livy-submit-configuration-parameters" title="Permalink to this headline">¶</a></h2>
 <p>livy-submit will load sparkmagic configuration and livy-submit configuration.
@@ -245,7 +245,7 @@ If this is of interest to you, comment on <a class="reference external" href="ht
       &copy;2019, Anaconda.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

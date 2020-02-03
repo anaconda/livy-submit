@@ -141,7 +141,7 @@ is set as the <cite>default_realm</cite> in the krb5.conf</p></li>
 <span id="livy-submit-livy-api-module"></span><h2>livy_submit.livy_api module<a class="headerlink" href="#module-livy_submit.livy_api" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="livy_submit.livy_api.Batch">
-<em class="property">class </em><code class="sig-prename descclassname">livy_submit.livy_api.</code><code class="sig-name descname">Batch</code><span class="sig-paren">(</span><em class="sig-param">id: str</em>, <em class="sig-param">appId: str</em>, <em class="sig-param">appInfo: dict</em>, <em class="sig-param">log: List</em>, <em class="sig-param">state: str</em><span class="sig-paren">)</span><a class="headerlink" href="#livy_submit.livy_api.Batch" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">livy_submit.livy_api.</code><code class="sig-name descname">Batch</code><span class="sig-paren">(</span><em class="sig-param">id: str</em>, <em class="sig-param">name: str</em>, <em class="sig-param">appId: str</em>, <em class="sig-param">appInfo: dict</em>, <em class="sig-param">log: List</em>, <em class="sig-param">state: str</em><span class="sig-paren">)</span><a class="headerlink" href="#livy_submit.livy_api.Batch" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 </dd></dl>
 
@@ -242,17 +242,20 @@ to be ignored in the Livy REST API</p>
 
 <dl class="method">
 <dt id="livy_submit.livy_api.LivyAPI.submit">
-<code class="sig-name descname">submit</code><span class="sig-paren">(</span><em class="sig-param">name: str</em>, <em class="sig-param">file: str</em>, <em class="sig-param">driverMemory: str = None</em>, <em class="sig-param">driverCores: int = None</em>, <em class="sig-param">executorMemory: str = None</em>, <em class="sig-param">executorCores: int = None</em>, <em class="sig-param">numExecutors: int = None</em>, <em class="sig-param">archives: List[str] = None</em>, <em class="sig-param">queue: str = None</em>, <em class="sig-param">conf: dict = None</em>, <em class="sig-param">args: List[str] = None</em>, <em class="sig-param">pyFiles: List[str] = None</em><span class="sig-paren">)</span> &#x2192; livy_submit.livy_api.Batch<a class="headerlink" href="#livy_submit.livy_api.LivyAPI.submit" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">submit</code><span class="sig-paren">(</span><em class="sig-param">file: str</em>, <em class="sig-param">name: str = None</em>, <em class="sig-param">driverMemory: str = None</em>, <em class="sig-param">driverCores: int = None</em>, <em class="sig-param">executorMemory: str = None</em>, <em class="sig-param">executorCores: int = None</em>, <em class="sig-param">numExecutors: int = None</em>, <em class="sig-param">archives: List[str] = None</em>, <em class="sig-param">queue: str = None</em>, <em class="sig-param">conf: dict = None</em>, <em class="sig-param">args: List[str] = None</em>, <em class="sig-param">pyFiles: List[str] = None</em><span class="sig-paren">)</span> &#x2192; livy_submit.livy_api.Batch<a class="headerlink" href="#livy_submit.livy_api.LivyAPI.submit" title="Permalink to this definition">¶</a></dt>
 <dd><blockquote>
 <div><p>Submit a batch job to the Livy server</p>
 <dl class="simple">
-<dt>name<span class="classifier">str</span></dt><dd><p>The name that your Spark job should have on the Yarn RM</p>
-</dd>
 <dt>file<span class="classifier">str</span></dt><dd><p>The file that should be executed during your Spark job. This file
 path must be accessible from the nodes that run your Spark driver/executors.
 It is likely that this means that you will need to have pre-uploaded your file
 to hdfs and then use the hdfs path for this <cite>file</cite> variable.
 e.g.: file=’hdfs://user/testuser/pi.py’</p>
+</dd>
+<dt>name<span class="classifier">str, optional</span></dt><dd><p>The name that your Spark job should have on the Yarn RM. The supplied
+name must be unique for all known Livy jobs (starting, running, or completed) or
+a ValueError is thrown. If the name is not provided the job name will
+be listed as None in Livy and as the filename in the Yarn RM.</p>
 </dd>
 <dt>driverMemory<span class="classifier">str, optional</span></dt><dd><p>e.g. 512m, 2g
 Amount of memory to use for the driver process, i.e. where
@@ -373,7 +376,7 @@ YARN Diagnostics: ‘]}</p>
       &copy;2019, Anaconda.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
