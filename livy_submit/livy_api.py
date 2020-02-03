@@ -26,10 +26,10 @@ class Batch:
     def __repr__(self):
         def _as_none(value):
             if value is None:
-                return None
+                return value
             else:
                 # return a fully quoted string in the repr
-                return f"'{self.name}'"
+                return f"'{value}'"
 
         return f"Batch(id={self.id}, name={_as_none(self.name)}, appId={_as_none(self.appId)}, appInfo={self.appInfo}, log='', state='{self.state}')"
 
