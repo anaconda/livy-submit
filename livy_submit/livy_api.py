@@ -24,8 +24,14 @@ class Batch:
         )
 
     def __repr__(self):
-        _name = f"'{self.name}'" if self.name is not None else self.name
-        return f"Batch(id={self.id}, name={_name}, appId='{self.appId}', appInfo={self.appInfo}, log='', state='{self.state}')"
+        def _as_none(value):
+            if value is None:
+                return None
+            else:
+                # return a fully quoted string in the repr
+                return f"'{self.name}'"
+
+        return f"Batch(id={self.id}, name={_as_none(self.name)}, appId={_as_none(self.appId)}, appInfo={self.appInfo}, log='', state='{self.state}')"
 
 
 class LivyAPI:
