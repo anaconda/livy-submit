@@ -153,9 +153,9 @@ class LivyAPI:
             e.g.: file='hdfs://user/testuser/pi.py'
         name : str, optional
             The name that your Spark job should have on the Yarn RM. The supplied
-            name must be unique for all jobs currently returned by all_info() or
-            a ValueError is thrown. If the name is not provided will be will be listed
-            as None in Livy and as the the filename in the Yarn Resource Manager.
+            name must be unique for all known Livy jobs (starting, running, or completed) or
+            a ValueError is thrown. If the name is not provided the job name will
+            be listed as None in Livy and as the filename in the Yarn RM.
         driverMemory : str, optional
             e.g. 512m, 2g
             Amount of memory to use for the driver process, i.e. where
