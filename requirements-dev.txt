@@ -5,3 +5,4 @@ ipykernel
 # So we can install in dev mode
 pip
 
+setuptools>=78.1.1 # not directly required, pinned by Snyk to avoid a vulnerability
